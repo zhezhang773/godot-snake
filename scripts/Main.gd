@@ -2925,7 +2925,7 @@ func _draw_ui() -> void:
 
 	if combo >= 3:
 		var combo_alpha: float = min(1.0, combo_timer / 0.5)
-		draw_string(ThemeDB.fallback_font, Vector2(15, 80),
+		draw_string(ThemeDB.fallback_font, Vector2(15, 135),
 			Loc.t("ui_combo") % combo, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1.0, 0.85, 0.2, combo_alpha))
 
 	# ---- Active effect countdown (top-right) ----
