@@ -1217,6 +1217,12 @@ func _eat_special_fruit(pos: Vector2i) -> void:
 			magma_fruit_active = true
 			magma_fruit_timer = MAGMA_FRUIT_DURATION
 			_spawn_floating_text(Loc.t("float_magma"), pos, Color(0.9, 0.25, 0.05), 22)
+			# Cancel any existing trap when magma fruit activates
+			if trap_active:
+				trap_active = false
+				trap_revealed = false
+				trap_countdown = 0.0
+				_spawn_floating_text(Loc.t("float_trap_cancel"), pos, Color(0.3, 0.8, 0.3), 16)
 
 	special_active = false
 	special_timer = 0.0
@@ -1261,7 +1267,7 @@ func _spawn_main_food() -> void:
 	food_spawn_time = food_time
 	if randf() < SPECIAL_SPAWN_CHANCE and not special_active:
 		_try_spawn_special()
-	if randf() < TRAP_SPAWN_CHANCE and not trap_active:
+	if randf() < TRAP_SPAWN_CHANCE and not trap_active and not magma_fruit_active:
 		trap_active = true
 		trap_revealed = false
 		trap_countdown = 0.0
