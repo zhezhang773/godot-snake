@@ -1394,11 +1394,6 @@ func _try_spawn_special() -> void:
 # 5 segments (15 combos): +800 pts, invincible for 10s (ghost+wallpass+wallstop)
 # =========================================================
 
-var combo_consume_wormholes: Array[Dictionary] = []
-var combo_wormhole_timer: float = 0.0
-var combo_double_score_active: bool = false
-var combo_double_score_timer: float = 0.0
-
 func _consume_combo() -> void:
 	var segments: int = min(combo / 3, 5)
 	if segments <= 0:
