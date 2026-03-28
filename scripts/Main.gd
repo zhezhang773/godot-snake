@@ -1395,8 +1395,8 @@ func _try_spawn_special() -> void:
 # =========================================================
 
 func _consume_combo() -> void:
-	var segments: int = min(combo / 3, 5)
-	if segments <= 0:
+	var combo_segments: int = min(combo / 3, 5)
+	if combo_segments <= 0:
 		return
 	
 	# Reset combo
@@ -1404,9 +1404,14 @@ func _consume_combo() -> void:
 	combo = 0
 	combo_timer = 0.0
 	
-	var head_pos: Vector2i = segments[0] if not segments.is_empty() else Vector2i(GRID_WIDTH/2, GRID_HEIGHT/2)
+	# Get head position from snake segments
+	var head_pos: Vector2i
+	if self.segments.size() > 0:
+		head_pos = self.segments[0]
+	else:
+		head_pos = Vector2i(GRID_WIDTH/2, GRID_HEIGHT/2)
 	
-	match segments:
+	match combo_segments:
 		1:
 			# Level 1: +50 pts, speed boost 2s
 			score += 50
