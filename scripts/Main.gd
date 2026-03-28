@@ -3105,36 +3105,44 @@ func _generate_volcano_and_magma(cx: int, cy: int) -> void:
 	var mx: int = best_x
 	var my: int = best_y
 	
-	for i in range(magma_length):
+	var placed_magma: int = 0
+	var max_attempts: int = magma_length * 3
+	var attempts: int = 0
+	
+	while placed_magma < magma_length and attempts < max_attempts:
+		attempts += 1
 		mx += flow_dir.x
 		my += flow_dir.y
-		# Occasionally branch
-		if randf() < 0.3 and i > 0:
-			var branch_dir: Vector2i = Vector2i(flow_dir.y, -flow_dir.x) if randf() < 0.5 else Vector2i(-flow_dir.y, flow_dir.x)
-			var bmx: int = mx + branch_dir.x
-			var bmy: int = my + branch_dir.y
-			if bmx >= 1 and bmx < GRID_WIDTH - 1 and bmy >= 1 and bmy < GRID_HEIGHT - 1:
-				if tiles[bmy][bmx] == Terrain.GROUND or tiles[bmy][bmx] == Terrain.MOUNTAIN:
-					tiles[bmy][bmx] = Terrain.MAGMA
-					# Small branch extension
-					var bmx2: int = bmx + branch_dir.x
-					var bmy2: int = bmy + branch_dir.y
-					if bmx2 >= 1 and bmx2 < GRID_WIDTH - 1 and bmy2 >= 1 and bmy2 < GRID_HEIGHT - 1:
-						if tiles[bmy2][bmx2] == Terrain.GROUND:
-							tiles[bmy2][bmx2] = Terrain.MAGMA
 		
-		if mx >= 1 and mx < GRID_WIDTH - 1 and my >= 1 and my < GRID_HEIGHT - 1:
-			if tiles[my][mx] == Terrain.GROUND or tiles[my][mx] == Terrain.MOUNTAIN:
-				tiles[my][mx] = Terrain.MAGMA
-				# Widen the flow occasionally
-				if randf() < 0.4:
-					var widen_x: int = mx + randi_range(-1, 1)
-					var widen_y: int = my + randi_range(-1, 1)
-					if widen_x >= 1 and widen_x < GRID_WIDTH - 1 and widen_y >= 1 and widen_y < GRID_HEIGHT - 1:
-						if tiles[widen_y][widen_x] == Terrain.GROUND:
-							tiles[widen_y][widen_x] = Terrain.MAGMA
-		else:
+		if mx < 1 or mx >= GRID_WIDTH - 1 or my < 1 or my >= GRID_HEIGHT - 1:
 			break
+		
+		if tiles[my][mx] == Terrain.VOLCANO:
+			continue
+		
+		if tiles[my][mx] == Terrain.GROUND or tiles[my][mx] == Terrain.MOUNTAIN:
+			tiles[my][mx] = Terrain.MAGMA
+			placed_magma += 1
+			
+			if randf() < 0.4:
+				var widen_x: int = mx + randi_range(-1, 1)
+				var widen_y: int = my + randi_range(-1, 1)
+				if widen_x >= 1 and widen_x < GRID_WIDTH - 1 and widen_y >= 1 and widen_y < GRID_HEIGHT - 1:
+					if tiles[widen_y][widen_x] == Terrain.GROUND:
+						tiles[widen_y][widen_x] = Terrain.MAGMA
+			
+			if randf() < 0.3 and placed_magma > 1:
+				var branch_dir: Vector2i = Vector2i(flow_dir.y, -flow_dir.x) if randf() < 0.5 else Vector2i(-flow_dir.y, flow_dir.x)
+				var bmx: int = mx + branch_dir.x
+				var bmy: int = my + branch_dir.y
+				if bmx >= 1 and bmx < GRID_WIDTH - 1 and bmy >= 1 and bmy < GRID_HEIGHT - 1:
+					if tiles[bmy][bmx] == Terrain.GROUND or tiles[bmy][bmx] == Terrain.MOUNTAIN:
+						tiles[bmy][bmx] = Terrain.MAGMA
+						var bmx2: int = bmx + branch_dir.x
+						var bmy2: int = bmy + branch_dir.y
+						if bmx2 >= 1 and bmx2 < GRID_WIDTH - 1 and bmy2 >= 1 and bmy2 < GRID_HEIGHT - 1:
+							if tiles[bmy2][bmx2] == Terrain.GROUND:
+								tiles[bmy2][bmx2] = Terrain.MAGMA
 
 func _generate_terrain() -> void:
 	tiles.clear()
@@ -3985,3 +3993,74 @@ func _init_floating_text_pool() -> void:
 			"size": 16,
 			"active": false,
 		})
+# Generate volcano at center and flowing magma
+func _generate_volcano_and_magma(cx: int, cy: int) -> void:
+	# Place volcano center (must be on existing mountain or nearby)
+	var best_x: int = cx
+	var best_y: int = cy
+	var best_count: int = -1
+	
+	# Find the best spot nearby with most mountains
+	for dy in range(-3, 4):
+		for dx in range(-3, 4):
+			var nx: int = cx + dx
+			var ny: int = cy + dy
+			if nx >= 2 and nx < GRID_WIDTH - 2 and ny >= 2 and ny < GRID_HEIGHT - 2:
+				var count: int = _count_mountain_neighbors(nx, ny)
+				if count > best_count:
+					best_count = count
+					best_x = nx
+					best_y = ny
+	
+	# Place volcano
+	tiles[best_y][best_x] = Terrain.VOLCANO
+	
+	# Generate flowing magma in one direction
+	var directions: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
+									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+	var flow_dir: Vector2i = directions[randi() % directions.size()]
+	
+	var magma_length: int = randi_range(3, 6)
+	var mx: int = best_x
+	var my: int = best_y
+	
+	var placed_magma: int = 0
+	var max_attempts: int = magma_length * 3
+	var attempts: int = 0
+	
+	while placed_magma < magma_length and attempts < max_attempts:
+		attempts += 1
+		mx += flow_dir.x
+		my += flow_dir.y
+		
+		if mx < 1 or mx >= GRID_WIDTH - 1 or my < 1 or my >= GRID_HEIGHT - 1:
+			break
+		
+		if tiles[my][mx] == Terrain.VOLCANO:
+			continue
+		
+		if tiles[my][mx] == Terrain.GROUND or tiles[my][mx] == Terrain.MOUNTAIN:
+			tiles[my][mx] = Terrain.MAGMA
+			placed_magma += 1
+			
+			if randf() < 0.4:
+				var widen_x: int = mx + randi_range(-1, 1)
+				var widen_y: int = my + randi_range(-1, 1)
+				if widen_x >= 1 and widen_x < GRID_WIDTH - 1 and widen_y >= 1 and widen_y < GRID_HEIGHT - 1:
+					if tiles[widen_y][widen_x] == Terrain.GROUND:
+						tiles[widen_y][widen_x] = Terrain.MAGMA
+			
+			if randf() < 0.3 and placed_magma > 1:
+				var branch_dir: Vector2i = Vector2i(flow_dir.y, -flow_dir.x) if randf() < 0.5 else Vector2i(-flow_dir.y, flow_dir.x)
+				var bmx: int = mx + branch_dir.x
+				var bmy: int = my + branch_dir.y
+				if bmx >= 1 and bmx < GRID_WIDTH - 1 and bmy >= 1 and bmy < GRID_HEIGHT - 1:
+					if tiles[bmy][bmx] == Terrain.GROUND or tiles[bmy][bmx] == Terrain.MOUNTAIN:
+						tiles[bmy][bmx] = Terrain.MAGMA
+						var bmx2: int = bmx + branch_dir.x
+						var bmy2: int = bmy + branch_dir.y
+						if bmx2 >= 1 and bmx2 < GRID_WIDTH - 1 and bmy2 >= 1 and bmy2 < GRID_HEIGHT - 1:
+							if tiles[bmy2][bmx2] == Terrain.GROUND:
+								tiles[bmy2][bmx2] = Terrain.MAGMA
+
+func _generate_terrain() -> void:
