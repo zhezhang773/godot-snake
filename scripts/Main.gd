@@ -3074,10 +3074,9 @@ func _count_mountain_neighbors(x: int, y: int) -> int:
 					count += 1
 	return count
 
-# Check if a cell is adjacent to VOLCANO or MAGMA
+# Check if a cell is adjacent (4-directional: up/down/left/right) to VOLCANO or MAGMA
 func _is_adjacent_to_volcano_or_magma(x: int, y: int) -> bool:
-	var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
-								 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+	var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]
 	for d in dirs:
 		var nx: int = x + d.x
 		var ny: int = y + d.y
@@ -3172,8 +3171,7 @@ func _validate_magma_connectivity(volcano_x: int, volcano_y: int) -> void:
 	while not queue.is_empty():
 		var current: Vector2i = queue.pop_front()
 		
-		var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
-									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+		var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]
 		for d in dirs:
 			var nx: int = current.x + d.x
 			var ny: int = current.y + d.y
