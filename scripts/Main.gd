@@ -1868,9 +1868,8 @@ func _draw_background() -> void:
 		draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), border_color, false, 2.0)
 		_draw_wall_sponge()
 	elif magma_fruit_active:
-		# Magma fruit screen effect - warm golden glow at edges
-		var magma_glow: Color = Color(1.0, 0.4, 0.0, 0.15 + 0.1 * sin(anim_timer * 4.0))
-		draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), magma_glow, false, 4.0)
+		# Magma fruit screen effect - fire flames at edges
+		_draw_screen_fire_effect()
 	elif ghost_active:
 		draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), border_color, false, 3.0)
 	elif boosted:
@@ -2024,6 +2023,57 @@ func _draw_wall_portal() -> void:
 # =========================================================
 # Drawing - Wall Golden Sponge Shield (Wall Stop effect)
 # =========================================================
+
+# --- Screen Fire Effect for Magma Fruit ---
+func _draw_screen_fire_effect() -> void:
+	var W: float = GRID_WIDTH * CELL_SIZE
+	var H: float = GRID_HEIGHT * CELL_SIZE
+	var flame_height: float = 25.0
+	
+	# Fire colors
+	var fire_core: Color = Color(1.0, 0.9, 0.3, 0.9)
+	var fire_mid: Color = Color(1.0, 0.5, 0.1, 0.8)
+	var fire_edge: Color = Color(0.9, 0.2, 0.05, 0.7)
+	
+	# Draw flames on all four edges
+	var sides: Array[int] = [0, 1, 2, 3]  # top, bottom, left, right
+	for side in sides:
+		var num_flames: int = 8 + int(magma_fruit_timer * 2.0) % 4
+		for i in range(num_flames):
+			var t: float = float(i) / float(num_flames - 1)
+			var flicker: float = sin(anim_timer * 8.0 + float(i) * 1.5 + float(side) * 2.0) * 0.3 + 0.7
+			var h: float = flame_height * (0.6 + 0.4 * flicker)
+			var w: float = 15.0 + 8.0 * flicker
+			
+			var fx: float = 0.0
+			var fy: float = 0.0
+			
+			match side:
+				0:  # Top
+					fx = t * W + sin(anim_timer * 3.0 + float(i)) * 5.0
+					fy = h * 0.5
+					# Draw flame pointing up
+					draw_circle(Vector2(fx, fy), w * 0.4, fire_edge)
+					draw_circle(Vector2(fx, fy - h * 0.3), w * 0.3, fire_mid)
+					draw_circle(Vector2(fx, fy - h * 0.6), w * 0.15, fire_core)
+				1:  # Bottom
+					fx = t * W + cos(anim_timer * 3.0 + float(i)) * 5.0
+					fy = H - h * 0.5
+					draw_circle(Vector2(fx, fy), w * 0.4, fire_edge)
+					draw_circle(Vector2(fx, fy + h * 0.3), w * 0.3, fire_mid)
+					draw_circle(Vector2(fx, fy + h * 0.6), w * 0.15, fire_core)
+				2:  # Left
+					fx = h * 0.5
+					fy = t * H + sin(anim_timer * 3.0 + float(i)) * 5.0
+					draw_circle(Vector2(fx, fy), w * 0.4, fire_edge)
+					draw_circle(Vector2(fx - h * 0.3, fy), w * 0.3, fire_mid)
+					draw_circle(Vector2(fx - h * 0.6, fy), w * 0.15, fire_core)
+				3:  # Right
+					fx = W - h * 0.5
+					fy = t * H + cos(anim_timer * 3.0 + float(i)) * 5.0
+					draw_circle(Vector2(fx, fy), w * 0.4, fire_edge)
+					draw_circle(Vector2(fx + h * 0.3, fy), w * 0.3, fire_mid)
+					draw_circle(Vector2(fx + h * 0.6, fy), w * 0.15, fire_core)
 
 func _draw_wall_sponge() -> void:
 	var W: float = GRID_WIDTH * CELL_SIZE
