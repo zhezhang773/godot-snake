@@ -91,7 +91,7 @@ const BASE_SPEED_MULTIPLIER: float = 1.0
 const LEVEL_SPEED_INCREASE: float = 0.03   # 3% faster per level
 const MAX_SPEED_INCREASE: float = 1.0      # Max 100% faster (half interval)
 const FOOD_SPEED_INCREASE: float = 0.01    # 1% faster per food eaten
-const GATE_SPEED_INCREASE: float = 0.01    # 1% faster per second after gate open
+const GATE_SPEED_INCREASE: float = 0.03    # 3% faster per second after gate open
 const RIVER_SCORE_INTERVAL: float = 1.0
 const RIVER_SCORE_PENALTY: int = 1
 
