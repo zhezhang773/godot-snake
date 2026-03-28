@@ -347,6 +347,10 @@ var special_colors: Dictionary = {
 		Color(0.2, 0.5, 1.0, 1.0), Color(0.1, 0.7, 0.9, 1.0),
 		Color(0.3, 0.4, 0.95, 1.0), Color(0.15, 0.6, 1.0, 1.0),
 	],
+	SpecialType.MAGMA_FRUIT: [
+		Color(0.9, 0.2, 0.05, 1.0), Color(1.0, 0.35, 0.1, 1.0),
+		Color(1.0, 0.5, 0.15, 1.0), Color(0.85, 0.25, 0.05, 1.0),
+	],
 }
 
 var ghost_bar_color: Color = Color(0.5, 0.3, 1.0, 0.7)
