@@ -348,8 +348,8 @@ var special_colors: Dictionary = {
 		Color(0.3, 0.4, 0.95, 1.0), Color(0.15, 0.6, 1.0, 1.0),
 	],
 	SpecialType.MAGMA_FRUIT: [
-		Color(0.9, 0.2, 0.05, 1.0), Color(1.0, 0.35, 0.1, 1.0),
-		Color(1.0, 0.5, 0.15, 1.0), Color(0.85, 0.25, 0.05, 1.0),
+		Color(1.0, 0.85, 0.0, 1.0), Color(1.0, 0.95, 0.2, 1.0),
+		Color(1.0, 0.7, 0.1, 1.0), Color(0.95, 0.6, 0.0, 1.0),
 	],
 }
 
@@ -2263,14 +2263,19 @@ func _draw_special_food() -> void:
 			_draw_chevron_left(center.x, center.y, 8.0, icon_color, 3.0)
 			_draw_chevron_left(center.x - 8.0, center.y, 8.0, icon_color, 3.0)
 		SpecialType.MAGMA_FRUIT:
-			# Draw flame icon
-			var flame_color: Color = Color(1.0, 0.3, 0.0, flash_alpha)
-			draw_circle(center + Vector2(0, -3), 6.0, flame_color)
-			draw_circle(center + Vector2(-2, 1), 4.0, Color(1.0, 0.6, 0.1, flash_alpha))
-			draw_circle(center + Vector2(2, 1), 4.0, Color(1.0, 0.6, 0.1, flash_alpha))
-			# M letter
-			draw_string(ThemeDB.fallback_font, Vector2(center.x + 6, center.y - 8),
-				"M", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 1.0, 1.0, 0.8 * flash_alpha))
+			# Draw golden flame icon (distinct from magma terrain)
+			var flame_core: Color = Color(1.0, 0.95, 0.3, flash_alpha)  # Bright yellow
+			var flame_mid: Color = Color(1.0, 0.75, 0.0, flash_alpha)   # Golden
+			var flame_edge: Color = Color(1.0, 0.5, 0.0, flash_alpha)   # Orange edge
+			draw_circle(center + Vector2(0, -3), 7.0, flame_edge)
+			draw_circle(center + Vector2(0, -3), 5.0, flame_mid)
+			draw_circle(center + Vector2(0, -3), 3.0, flame_core)
+			# Side flames
+			draw_circle(center + Vector2(-3, 2), 4.0, flame_mid)
+			draw_circle(center + Vector2(3, 2), 4.0, flame_mid)
+			# M letter in dark red
+			draw_string(ThemeDB.fallback_font, Vector2(center.x + 5, center.y - 6),
+				"M", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.6, 0.1, 0.05, flash_alpha))
 		_:
 			var icon_char: String
 			match special_type:
