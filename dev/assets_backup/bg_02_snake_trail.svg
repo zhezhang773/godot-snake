@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#0f1a2e"/>
+      <stop offset="100%" stop-color="#070b14"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="bigGlow"><feGaussianBlur stdDeviation="25"/></filter>
+    <filter id="particleGlow"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Snake trail winding S-curve -->
+  <g filter="url(#glow)">
+    <path d="M -20,200 C 120,200 160,100 280,100 C 400,100 360,350 480,350 
+             C 600,350 560,550 680,550 C 800,550 780,750 880,750"
+          fill="none" stroke="#14cc48" stroke-width="30" stroke-linecap="round" opacity="0.7"/>
+    <path d="M -20,200 C 120,200 160,100 280,100 C 400,100 360,350 480,350 
+             C 600,350 560,550 680,550 C 800,550 780,750 880,750"
+          fill="none" stroke="#1aff5a" stroke-width="30" stroke-linecap="round" opacity="0.2"/>
+  </g>
+  <!-- Trail glow -->
+  <path d="M -20,200 C 120,200 160,100 280,100 C 400,100 360,350 480,350 
+           C 600,350 560,550 680,550 C 800,550 780,750 880,750"
+        fill="none" stroke="#1aff5a" stroke-width="60" opacity="0.08" filter="url(#bigGlow)"/>
+  <!-- Snake head at end -->
+  <g filter="url(#glow)">
+    <circle cx="860" cy="750" r="20" fill="#1aff5a"/>
+    <circle cx="856" cy="744" r="5.5" fill="white" opacity="0.9"/>
+    <circle cx="855" cy="743" r="2.8" fill="#111"/>
+    <circle cx="868" cy="744" r="5.5" fill="white" opacity="0.9"/>
+    <circle cx="869" cy="743" r="2.8" fill="#111"/>
+  </g>
+  <!-- Trail particles -->
+  <g filter="url(#particleGlow)" opacity="0.5">
+    <circle cx="280" cy="100" r="4" fill="#1aff5a"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="260" cy="130" r="2.5" fill="#0df04e"/>
+    <circle cx="300" cy="80" r="3" fill="#18ff55"/>
+    <circle cx="480" cy="350" r="4" fill="#1aff5a"><animate attributeName="opacity" values="0.5;1;0.5" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="460" cy="320" r="2.5" fill="#14cc48"/>
+    <circle cx="500" cy="380" r="3" fill="#18ff55"/>
+    <circle cx="680" cy="550" r="4" fill="#1aff5a"><animate attributeName="opacity" values="0.4;0.9;0.4" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="660" cy="520" r="2.5" fill="#0df04e"/>
+    <circle cx="700" cy="580" r="3" fill="#18ff55"/>
+  </g>
+  <!-- Scattered food dots along edges -->
+  <g opacity="0.5">
+    <circle cx="100" cy="80" r="6" fill="#ff3b3b" filter="url(#glow)"/>
+    <circle cx="750" cy="120" r="5" fill="#ff3b3b" filter="url(#glow)"/>
+    <circle cx="60" cy="500" r="7" fill="#ff3b3b" filter="url(#glow)"/>
+    <circle cx="200" cy="700" r="5" fill="#ff3b3b" filter="url(#glow)"/>
+    <circle cx="780" cy="380" r="6" fill="#ff3b3b" filter="url(#glow)"/>
+  </g>
+  <!-- Ambient floating particles -->
+  <g opacity="0.25">
+    <circle cx="150" cy="300" r="1.5" fill="#1aff5a"><animate attributeName="cy" values="300;290;300" dur="3s" repeatCount="indefinite"/></circle>
+    <circle cx="400" cy="150" r="2" fill="#1aff5a"><animate attributeName="cy" values="150;140;150" dur="4s" repeatCount="indefinite"/></circle>
+    <circle cx="700" cy="250" r="1.8" fill="#1aff5a"><animate attributeName="cy" values="250;240;250" dur="3.5s" repeatCount="indefinite"/></circle>
+    <circle cx="350" cy="600" r="2" fill="#1aff5a"><animate attributeName="cy" values="600;590;600" dur="2.8s" repeatCount="indefinite"/></circle>
+    <circle cx="550" cy="700" r="1.5" fill="#14cc48"><animate attributeName="cy" values="700;690;700" dur="3.2s" repeatCount="indefinite"/></circle>
+    <circle cx="100" cy="750" r="1.8" fill="#ff4444"><animate attributeName="cy" values="750;740;750" dur="3.8s" repeatCount="indefinite"/></circle>
+  </g>
+</svg>

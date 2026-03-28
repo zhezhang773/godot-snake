@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Snake Style Preview</title>
+<style>
+body { background: #0a0c14; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
+h1 { text-align: center; margin-bottom: 30px; color: #3ddb73; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 1300px; margin: 0 auto; }
+.card { background: #141824; border-radius: 12px; overflow: hidden; border: 1px solid #1e2438; transition: transform 0.2s; }
+.card:hover { transform: translateY(-4px); border-color: #3ddb73; }
+.card img { width: 100%; display: block; }
+.card .info { padding: 12px 16px; }
+.card .name { font-size: 16px; font-weight: 600; color: #e0e4ec; }
+.card .desc { font-size: 13px; color: #7a8099; margin-top: 4px; }
+.footer { text-align: center; margin-top: 30px; color: #555; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>🐍 Snake Style Preview — 蛇身体风格预览</h1>
+<div class="grid">
+</div>
+<p class="footer">Pick a number (1-10) and tell me which style you like! / 告诉我你喜欢哪个编号！</p>
+<script>
+const styles = [];
+for (let i = 1; i <= 10; i++) {
+    const resp = await fetch(`style_${String(i).padStart(2,'0')}.svg`);
+    const svg = await resp.text();
+    styles.push(svg);
+}
+const grid = document.querySelector('.grid');
+const names = [
+    'Pure Square', 'Rounded Square', 'Circles', 'Pill / Capsule', 'Diamond',
+    'Hexagon', 'Squircle', 'Star / Cross', 'Blob (Organic)', 'Bordered Block'
+];
+const descs = [
+    '经典像素风格，锐利边角 / Classic pixel, sharp edges',
+    '柔和圆角，友好整洁 / Soft corners, friendly & neat',
+    '平滑圆形身体，圆润可爱 / Smooth round, bubbly feel',
+    '胶囊造型，流畅衔接 / Fully rounded ends, smooth body',
+    '旋转方块，优雅几何 / Rotated squares, elegant geometric',
+    '蜂窝结构，自然感 / Honeycomb segments, nature vibe',
+    'iOS 风格，现代简约 / iOS-style, modern & sleek',
+    '星形十字，棱角分明 / Pointed stars, edgy look',
+    '有机重叠，毛毛虫感 / Soft overlapping, caterpillar-like',
+    '描边方块，3D 明暗 / Outlined blocks with 3D shading'
+];
+for (let i = 0; i < 10; i++) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<img src="data:image/svg+xml,${encodeURIComponent(styles[i])}"><div class="info"><div class="name">#${i+1} — ${names[i]}</div><div class="desc">${descs[i]}</div></div>`;
+    grid.appendChild(card);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#141c2e"/>
+      <stop offset="100%" stop-color="#0a0e18"/>
+    </radialGradient>
+    <radialGradient id="glow_green" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1aff5a" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#1aff5a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow_red" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff3b3b" stop-opacity="0.5"/>
+      <stop offset="70%" stop-color="#ff3b3b" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#ff3b3b" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="bigGlow">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <linearGradient id="snake_body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1aff5a"/>
+      <stop offset="50%" stop-color="#14cc48"/>
+      <stop offset="100%" stop-color="#0a8830"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Grid lines -->
+  <g opacity="0.06" stroke="#4a8f6a" stroke-width="0.5">
+    <line x1="0" y1="0" x2="0" y2="860" id="gv"/>
+    <line x1="43" y1="0" x2="43" y2="860"/><line x1="86" y1="0" x2="86" y2="860"/>
+    <line x1="129" y1="0" x2="129" y2="860"/><line x1="172" y1="0" x2="172" y2="860"/>
+    <line x1="215" y1="0" x2="215" y2="860"/><line x1="258" y1="0" x2="258" y2="860"/>
+    <line x1="301" y1="0" x2="301" y2="860"/><line x1="344" y1="0" x2="344" y2="860"/>
+    <line x1="387" y1="0" x2="387" y2="860"/><line x1="430" y1="0" x2="430" y2="860"/>
+    <line x1="473" y1="0" x2="473" y2="860"/><line x1="516" y1="0" x2="516" y2="860"/>
+    <line x1="559" y1="0" x2="559" y2="860"/><line x1="602" y1="0" x2="602" y2="860"/>
+    <line x1="645" y1="0" x2="645" y2="860"/><line x1="688" y1="0" x2="688" y2="860"/>
+    <line x1="731" y1="0" x2="731" y2="860"/><line x1="774" y1="0" x2="774" y2="860"/>
+    <line x1="817" y1="0" x2="817" y2="860"/><line x1="860" y1="0" x2="860" y2="860"/>
+    <line x1="0" y1="43" x2="860" y2="43"/><line x1="0" y1="86" x2="860" y2="86"/>
+    <line x1="0" y1="129" x2="860" y2="129"/><line x1="0" y1="172" x2="860" y2="172"/>
+    <line x1="0" y1="215" x2="860" y2="215"/><line x1="0" y1="258" x2="860" y2="258"/>
+    <line x1="0" y1="301" x2="860" y2="301"/><line x1="0" y1="344" x2="860" y2="344"/>
+    <line x1="0" y1="387" x2="860" y2="387"/><line x1="0" y1="430" x2="860" y2="430"/>
+    <line x1="0" y1="473" x2="860" y2="473"/><line x1="0" y1="516" x2="860" y2="516"/>
+    <line x1="0" y1="559" x2="860" y2="559"/><line x1="0" y1="602" x2="860" y2="602"/>
+    <line x1="0" y1="645" x2="860" y2="645"/><line x1="0" y1="688" x2="860" y2="688"/>
+    <line x1="0" y1="731" x2="860" y2="731"/><line x1="0" y1="774" x2="860" y2="774"/>
+    <line x1="0" y1="817" x2="860" y2="817"/><line x1="0" y1="860" x2="860" y2="860"/>
+  </g>
+  <!-- Big center glow -->
+  <circle cx="430" cy="430" r="260" fill="url(#glow_green)" filter="url(#bigGlow)"/>
+  <!-- Coiled snake - Archimedean spiral approximation -->
+  <g filter="url(#softGlow)">
+    <path d="M 430,430 
+      C 430,395 455,370 490,370 C 540,370 570,400 570,450 
+      C 570,520 520,560 450,560 C 360,560 300,500 300,410 
+      C 300,300 370,240 480,240 C 610,240 690,330 690,460 
+      C 690,620 580,710 420,710 C 240,710 150,590 150,400 
+      C 150,190 280,80 470,80"
+      fill="none" stroke="url(#snake_body)" stroke-width="28" stroke-linecap="round" opacity="0.85"/>
+    <path d="M 430,430 
+      C 430,395 455,370 490,370 C 540,370 570,400 570,450 
+      C 570,520 520,560 450,560 C 360,560 300,500 300,410 
+      C 300,300 370,240 480,240 C 610,240 690,330 690,460 
+      C 690,620 580,710 420,710 C 240,710 150,590 150,400 
+      C 150,190 280,80 470,80"
+      fill="none" stroke="#1aff5a" stroke-width="28" stroke-linecap="round" opacity="0.15"/>
+  </g>
+  <!-- Snake head -->
+  <circle cx="470" cy="80" r="18" fill="#1aff5a" filter="url(#softGlow)"/>
+  <circle cx="478" cy="74" r="5" fill="white" opacity="0.9"/>
+  <circle cx="480" cy="73" r="2.5" fill="#111"/>
+  <circle cx="462" cy="74" r="5" fill="white" opacity="0.9"/>
+  <circle cx="460" cy="73" r="2.5" fill="#111"/>
+  <!-- Food orbs -->
+  <circle cx="200" cy="200" r="40" fill="url(#glow_red)"/>
+  <circle cx="200" cy="200" r="10" fill="#ff4444" filter="url(#softGlow)"/>
+  <circle cx="197" cy="196" r="3" fill="#ff8888" opacity="0.7"/>
+  <circle cx="680" cy="250" r="35" fill="url(#glow_red)"/>
+  <circle cx="680" cy="250" r="9" fill="#ff4444" filter="url(#softGlow)"/>
+  <circle cx="677" cy="246" r="2.5" fill="#ff8888" opacity="0.7"/>
+  <circle cx="150" cy="600" r="30" fill="url(#glow_red)"/>
+  <circle cx="150" cy="600" r="8" fill="#ff4444" filter="url(#softGlow)"/>
+  <circle cx="720" cy="680" r="38" fill="url(#glow_red)"/>
+  <circle cx="720" cy="680" r="10" fill="#ff4444" filter="url(#softGlow)"/>
+  <circle cx="350" cy="750" r="25" fill="url(#glow_red)"/>
+  <circle cx="350" cy="750" r="7" fill="#ff4444" filter="url(#softGlow)"/>
+  <!-- Floating particles -->
+  <g opacity="0.3">
+    <circle cx="320" cy="180" r="2" fill="#1aff5a"/>
+    <circle cx="560" cy="310" r="1.5" fill="#1aff5a"/>
+    <circle cx="180" cy="420" r="2.5" fill="#1aff5a"/>
+    <circle cx="650" cy="520" r="1.8" fill="#1aff5a"/>
+    <circle cx="500" cy="680" r="2" fill="#ff4444"/>
+    <circle cx="280" cy="560" r="1.5" fill="#ff4444"/>
+    <circle cx="620" cy="160" r="2" fill="#1aff5a"/>
+    <circle cx="100" cy="350" r="1.8" fill="#ff4444"/>
+  </g>
+</svg>

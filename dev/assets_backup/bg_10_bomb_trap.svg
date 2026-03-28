@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#10141e"/>
+      <stop offset="100%" stop-color="#060810"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bigGlow"><feGaussianBlur stdDeviation="20"/></filter>
+    <radialGradient id="bombGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff3300" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#ff2200" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bombBody" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#554440"/>
+      <stop offset="100%" stop-color="#221c1a"/>
+    </radialGradient>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Danger ambient red glow -->
+  <circle cx="430" cy="430" r="300" fill="url(#bombGlow)" filter="url(#bigGlow)"/>
+  <!-- Subtle grid -->
+  <g stroke="#331815" stroke-width="0.5" opacity="0.06">
+    <line x1="0" y1="86" x2="860" y2="86"/><line x1="0" y1="172" x2="860" y2="172"/>
+    <line x1="0" y1="258" x2="860" y2="258"/><line x1="0" y1="344" x2="860" y2="344"/>
+    <line x1="0" y1="430" x2="860" y2="430"/><line x1="0" y1="516" x2="860" y2="516"/>
+    <line x1="0" y1="602" x2="860" y2="602"/><line x1="0" y1="688" x2="860" y2="688"/>
+    <line x1="0" y1="774" x2="860" y2="774"/>
+    <line x1="86" y1="0" x2="86" y2="860"/><line x1="172" y1="0" x2="172" y2="860"/>
+    <line x1="258" y1="0" x2="258" y2="860"/><line x1="344" y1="0" x2="344" y2="860"/>
+    <line x1="430" y1="0" x2="430" y2="860"/><line x1="516" y1="0" x2="516" y2="860"/>
+    <line x1="602" y1="0" x2="602" y2="860"/><line x1="688" y1="0" x2="688" y2="860"/>
+    <line x1="774" y1="0" x2="774" y2="860"/>
+  </g>
+  <!-- Scattered normal food (decoy) -->
+  <g opacity="0.4">
+    <circle cx="200" cy="300" r="6" fill="#ff4444" filter="url(#glow)"/>
+    <circle cx="600" cy="200" r="5" fill="#ff4444" filter="url(#glow)"/>
+    <circle cx="150" cy="600" r="7" fill="#ff4444" filter="url(#glow)"/>
+    <circle cx="700" cy="650" r="5" fill="#ff4444" filter="url(#glow)"/>
+    <circle cx="350" cy="700" r="6" fill="#ff4444" filter="url(#glow)"/>
+    <circle cx="650" cy="450" r="5.5" fill="#ff4444" filter="url(#glow)"/>
+  </g>
+  <!-- Central BOMB - large dramatic -->
+  <g transform="translate(430, 420)">
+    <!-- Outer danger glow -->
+    <circle r="100" fill="#ff2200" opacity="0.04" filter="url(#bigGlow)"/>
+    <circle r="70" fill="#ff3300" opacity="0.08" filter="url(#bigGlow)"/>
+    <!-- Bomb body -->
+    <circle r="55" fill="url(#bombBody)" filter="url(#glow)"/>
+    <!-- Bomb highlight -->
+    <circle cx="-15" cy="-15" r="18" fill="#665550" opacity="0.4"/>
+    <!-- X mark -->
+    <line x1="-18" y1="-18" x2="18" y2="18" stroke="#aa2211" stroke-width="4" stroke-linecap="round"/>
+    <line x1="18" y1="-18" x2="-18" y2="18" stroke="#aa2211" stroke-width="4" stroke-linecap="round"/>
+    <!-- Fuse base -->
+    <rect x="-5" y="-60" width="10" height="8" rx="2" fill="#665544"/>
+    <!-- Fuse line -->
+    <path d="M 0,-60 C 8,-68 3,-78 10,-85 C 14,-90 8,-95 5,-100" fill="none" stroke="#8b7740" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Spark -->
+    <circle cx="5" cy="-100" r="8" fill="#ff6600" opacity="0.3" filter="url(#glow)">
+      <animate attributeName="r" values="6;10;6" dur="0.4s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.2;0.5;0.2" dur="0.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="5" cy="-100" r="4" fill="#ffaa00" opacity="0.7" filter="url(#glow)">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="0.25s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="5" cy="-100" r="2" fill="#ffff88">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="0.2s" repeatCount="indefinite"/>
+    </circle>
+    <!-- Warning text -->
+    <text x="0" y="100" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="22" fill="#ff4422" opacity="0.4" filter="url(#glow)">-100</text>
+  </g>
+  <!-- Snake approaching (silhouette, cautious) -->
+  <g filter="url(#glow)" opacity="0.5">
+    <rect x="250" y="404" width="28" height="28" rx="4" fill="#1aff5a" opacity="0.6"/>
+    <rect x="278" y="404" width="28" height="28" rx="4" fill="#1aff5a" opacity="0.7"/>
+    <rect x="306" y="404" width="28" height="28" rx="4" fill="#1aff5a" opacity="0.8"/>
+    <!-- Head with wary eyes -->
+    <rect x="334" y="404" width="28" height="28" rx="5" fill="#1aff5a" opacity="0.9"/>
+    <circle cx="350" cy="414" r="4.5" fill="white" opacity="0.9"/>
+    <circle cx="351" cy="413" r="2.2" fill="#111"/>
+    <circle cx="342" cy="414" r="4.5" fill="white" opacity="0.9"/>
+    <circle cx="341" cy="413" r="2.2" fill="#111"/>
+  </g>
+  <!-- Danger particles -->
+  <g fill="#ff3300" opacity="0.3" filter="url(#glow)">
+    <circle cx="380" cy="350" r="2"><animate attributeName="opacity" values="0.2;0.6;0.2" dur="1.5s" repeatCount="indefinite"/></circle>
+    <circle cx="500" cy="500" r="2.5"><animate attributeName="opacity" values="0.15;0.5;0.15" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="350" cy="500" r="1.8"><animate attributeName="opacity" values="0.2;0.55;0.2" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="510" cy="350" r="2"><animate attributeName="opacity" values="0.15;0.5;0.15" dur="2.2s" repeatCount="indefinite"/></circle>
+  </g>
+  <!-- Pulsing danger border -->
+  <rect x="30" y="30" width="800" height="800" rx="3" fill="none" stroke="#ff2200" stroke-width="2" opacity="0.08">
+    <animate attributeName="opacity" values="0.05;0.15;0.05" dur="2s" repeatCount="indefinite"/>
+  </rect>
+</svg>

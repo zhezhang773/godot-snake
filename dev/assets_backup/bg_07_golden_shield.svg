@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#1a1510"/>
+      <stop offset="100%" stop-color="#0a0806"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bigGlow"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="goldGlow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="goldAmbient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffc107" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffc107" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Golden ambient light -->
+  <circle cx="430" cy="430" r="350" fill="url(#goldAmbient)" filter="url(#bigGlow)"/>
+  <!-- Golden shield border - outer glow -->
+  <rect x="25" y="25" width="810" height="810" rx="6" fill="none" stroke="#ffc107" stroke-width="20" opacity="0.08" filter="url(#bigGlow)"/>
+  <!-- Golden shield border - main -->
+  <rect x="30" y="30" width="800" height="800" rx="4" fill="none" stroke="#e6a800" stroke-width="12" opacity="0.3"/>
+  <!-- Golden shield border - highlight -->
+  <rect x="30" y="30" width="800" height="800" rx="4" fill="none" stroke="#ffd54f" stroke-width="3" opacity="0.4"/>
+  <!-- Golden shield border - dark inner -->
+  <rect x="42" y="42" width="776" height="776" rx="2" fill="none" stroke="#8d6e00" stroke-width="1" opacity="0.3"/>
+  <!-- Sponge texture dots on border -->
+  <g fill="#ffd54f" opacity="0.15">
+    <circle cx="100" cy="30" r="4"/><circle cx="200" cy="30" r="3.5"/><circle cx="300" cy="30" r="4.5"/>
+    <circle cx="400" cy="30" r="3"/><circle cx="500" cy="30" r="4"/><circle cx="600" cy="30" r="3.5"/>
+    <circle cx="700" cy="30" r="4.5"/><circle cx="800" cy="30" r="3"/>
+    <circle cx="100" cy="830" r="3.5"/><circle cx="200" cy="830" r="4"/><circle cx="300" cy="830" r="3"/>
+    <circle cx="400" cy="830" r="4.5"/><circle cx="500" cy="830" r="3.5"/><circle cx="600" cy="830" r="4"/>
+    <circle cx="700" cy="830" r="3"/><circle cx="800" cy="830" r="4.5"/>
+    <circle cx="30" cy="100" r="4"/><circle cx="30" cy="200" r="3.5"/><circle cx="30" cy="300" r="4.5"/>
+    <circle cx="30" cy="400" r="3"/><circle cx="30" cy="500" r="4"/><circle cx="30" cy="600" r="3.5"/>
+    <circle cx="30" cy="700" r="4.5"/><circle cx="30" cy="800" r="3"/>
+    <circle cx="830" cy="100" r="3.5"/><circle cx="830" cy="200" r="4"/><circle cx="830" cy="300" r="3"/>
+    <circle cx="830" cy="400" r="4.5"/><circle cx="830" cy="500" r="3.5"/><circle cx="830" cy="600" r="4"/>
+    <circle cx="830" cy="700" r="3"/><circle cx="830" cy="800" r="4.5"/>
+  </g>
+  <!-- Flowing golden light particles along border -->
+  <g fill="#ffe082" opacity="0.4">
+    <circle r="3" filter="url(#glow)"><animateMotion dur="8s" repeatCount="indefinite" path="M 430,30 L 830,430 L 430,830 L 30,430 Z"/></circle>
+    <circle r="2.5" filter="url(#glow)"><animateMotion dur="8s" repeatCount="indefinite" begin="2s" path="M 430,30 L 830,430 L 430,830 L 30,430 Z"/></circle>
+    <circle r="3" filter="url(#glow)"><animateMotion dur="8s" repeatCount="indefinite" begin="4s" path="M 430,30 L 830,430 L 430,830 L 30,430 Z"/></circle>
+    <circle r="2.5" filter="url(#glow)"><animateMotion dur="8s" repeatCount="indefinite" begin="6s" path="M 430,30 L 830,430 L 430,830 L 30,430 Z"/></circle>
+  </g>
+  <!-- Corner sparkles -->
+  <g filter="url(#glow)" opacity="0.5">
+    <circle cx="30" cy="30" r="8" fill="#ffd54f" opacity="0.3"/>
+    <circle cx="30" cy="30" r="4" fill="#ffe082"/>
+    <circle cx="830" cy="30" r="8" fill="#ffd54f" opacity="0.3"/>
+    <circle cx="830" cy="30" r="4" fill="#ffe082"/>
+    <circle cx="30" cy="830" r="8" fill="#ffd54f" opacity="0.3"/>
+    <circle cx="30" cy="830" r="4" fill="#ffe082"/>
+    <circle cx="830" cy="830" r="8" fill="#ffd54f" opacity="0.3"/>
+    <circle cx="830" cy="830" r="4" fill="#ffe082"/>
+  </g>
+  <!-- Small green snake in center -->
+  <g filter="url(#glow)" opacity="0.6">
+    <rect x="380" y="400" width="36" height="36" rx="6" fill="#1aff5a" opacity="0.8"/>
+    <rect x="416" y="400" width="34" height="34" rx="5" fill="#14cc48" opacity="0.7"/>
+    <rect x="416" y="434" width="32" height="32" rx="5" fill="#0fa83a" opacity="0.6"/>
+    <rect x="416" y="466" width="30" height="30" rx="4" fill="#0a8830" opacity="0.5"/>
+    <!-- Eyes -->
+    <circle cx="392" cy="412" r="4" fill="white" opacity="0.9"/>
+    <circle cx="393" cy="411" r="2" fill="#111"/>
+    <circle cx="408" cy="412" r="4" fill="white" opacity="0.9"/>
+    <circle cx="409" cy="411" r="2" fill="#111"/>
+  </g>
+  <!-- Subtle food orb -->
+  <circle cx="560" cy="300" r="25" fill="#ff3b3b" opacity="0.08" filter="url(#bigGlow)"/>
+  <circle cx="560" cy="300" r="7" fill="#ff4444" opacity="0.5" filter="url(#glow)"/>
+</svg>

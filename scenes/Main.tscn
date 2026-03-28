@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0b5vecbes3cb"]
+
+[ext_resource type="Script" uid="uid://dt3x5ck6lgmcc" path="res://scripts/Main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://n0hcfyegybg7" path="res://scripts/AudioManager.gd" id="2_audio"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="AudioManager" type="Node" parent="."]
+script = ExtResource("2_audio")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(430, 430)
+zoom = Vector2(1, 1)

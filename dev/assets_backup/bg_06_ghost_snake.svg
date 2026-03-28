@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a1428"/>
+      <stop offset="100%" stop-color="#0a0810"/>
+    </radialGradient>
+    <radialGradient id="ghostGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9944ff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#6622cc" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bigGlow"><feGaussianBlur stdDeviation="25"/></filter>
+    <filter id="ghostBlur"><feGaussianBlur stdDeviation="2"/></filter>
+    <linearGradient id="ghostBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b366ff" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#6633cc" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Big purple ambient glow -->
+  <circle cx="430" cy="430" r="300" fill="url(#ghostGlow)" filter="url(#bigGlow)"/>
+  <!-- Grid lines (very faint) -->
+  <g stroke="#6644aa" stroke-width="0.5" opacity="0.05">
+    <line x1="0" y1="215" x2="860" y2="215"/><line x1="0" y1="430" x2="860" y2="430"/>
+    <line x1="0" y1="645" x2="860" y2="645"/>
+    <line x1="215" y1="0" x2="215" y2="860"/><line x1="430" y1="0" x2="430" y2="860"/>
+    <line x1="645" y1="0" x2="645" y2="860"/>
+  </g>
+  <!-- Ghost snake - translucent coiling body -->
+  <g filter="url(#ghostBlur)" opacity="0.6">
+    <path d="M 430,430 
+      C 430,380 470,340 520,340 C 590,340 630,390 630,450 
+      C 630,540 570,580 490,580 C 390,580 340,520 340,430 
+      C 340,310 420,250 540,250 C 680,250 750,350 750,470"
+      fill="none" stroke="url(#ghostBody)" stroke-width="30" stroke-linecap="round"/>
+  </g>
+  <!-- Ghost snake brighter inner line -->
+  <path d="M 430,430 
+    C 430,380 470,340 520,340 C 590,340 630,390 630,450 
+    C 630,540 570,580 490,580 C 390,580 340,520 340,430 
+    C 340,310 420,250 540,250 C 680,250 750,350 750,470"
+    fill="none" stroke="#b366ff" stroke-width="2" stroke-linecap="round" opacity="0.4" filter="url(#glow)"/>
+  <!-- Ghost head -->
+  <g filter="url(#glow)" opacity="0.7">
+    <circle cx="750" cy="470" r="18" fill="#b366ff" opacity="0.5"/>
+    <circle cx="756" cy="464" r="5" fill="#d9b3ff" opacity="0.8"/>
+    <circle cx="758" cy="463" r="2.5" fill="#3322aa" opacity="0.9"/>
+    <circle cx="742" cy="464" r="5" fill="#d9b3ff" opacity="0.8"/>
+    <circle cx="740" cy="463" r="2.5" fill="#3322aa" opacity="0.9"/>
+  </g>
+  <!-- Floating ghost particles -->
+  <g opacity="0.35">
+    <circle cx="350" cy="300" r="3" fill="#9966ff" filter="url(#glow)"><animate attributeName="opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/><animate attributeName="cy" values="300;288;300" dur="4s" repeatCount="indefinite"/></circle>
+    <circle cx="550" cy="380" r="2.5" fill="#aa77ff"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="2.5s" repeatCount="indefinite"/><animate attributeName="cy" values="380;370;380" dur="3.5s" repeatCount="indefinite"/></circle>
+    <circle cx="480" cy="520" r="3.5" fill="#8855ee" filter="url(#glow)"><animate attributeName="opacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite"/><animate attributeName="cy" values="520;508;520" dur="5s" repeatCount="indefinite"/></circle>
+    <circle cx="620" cy="310" r="2" fill="#bb88ff"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="300" cy="550" r="2.5" fill="#9966ff"><animate attributeName="opacity" values="0.2;0.6;0.2" dur="3.5s" repeatCount="indefinite"/><animate attributeName="cy" values="550;540;550" dur="4.5s" repeatCount="indefinite"/></circle>
+    <circle cx="680" cy="580" r="2" fill="#aa77ff"><animate attributeName="opacity" values="0.3;0.7;0.3" dur="2.8s" repeatCount="indefinite"/></circle>
+  </g>
+  <!-- Red food orb (normal, non-ghost) for contrast -->
+  <g filter="url(#glow)" opacity="0.6">
+    <circle cx="180" cy="200" r="30" fill="#ff3b3b" opacity="0.15"/>
+    <circle cx="180" cy="200" r="8" fill="#ff4444"/>
+    <circle cx="177" cy="196" r="2.5" fill="#ff8888" opacity="0.7"/>
+  </g>
+  <g filter="url(#glow)" opacity="0.5">
+    <circle cx="650" cy="700" r="25" fill="#ff3b3b" opacity="0.12"/>
+    <circle cx="650" cy="700" r="7" fill="#ff4444"/>
+  </g>
+  <!-- Pulsing border glow -->
+  <rect x="30" y="30" width="800" height="800" rx="4" fill="none" stroke="#9944ff" stroke-width="2" opacity="0.15">
+    <animate attributeName="opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
+  </rect>
+</svg>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#111a28"/>
+      <stop offset="100%" stop-color="#080c14"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="neonGlow"><feGaussianBlur stdDeviation="3" result="b"/><feComposite in="b" in2="b" operator="over" result="b2"/><feMerge><feMergeNode in="b2"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Hexagonal scale pattern -->
+  <g stroke="#1aff5a" fill="none" stroke-width="1" opacity="0.08">
+    <!-- Row 1 -->
+    <polygon points="430,60 470,83 470,128 430,151 390,128 390,83"/>
+    <polygon points="490,83 530,106 530,151 490,174 450,151 450,106"/>
+    <polygon points="370,83 410,106 410,151 370,174 330,151 330,106"/>
+    <polygon points="550,106 590,129 590,174 550,197 510,174 510,129"/>
+    <polygon points="310,106 350,129 350,174 310,197 270,174 270,129"/>
+    <!-- Row 2 -->
+    <polygon points="430,151 470,174 470,219 430,242 390,219 390,174"/>
+    <polygon points="490,174 530,197 530,242 490,265 450,242 450,197"/>
+    <polygon points="370,174 410,197 410,242 370,265 330,242 330,197"/>
+    <polygon points="550,197 590,220 590,265 550,288 510,265 510,220"/>
+    <polygon points="310,197 350,220 350,265 310,288 270,265 270,220"/>
+    <!-- Row 3 - bright accent row -->
+    <polygon points="430,242 470,265 470,310 430,333 390,310 390,265"/>
+    <polygon points="490,265 530,288 530,333 490,356 450,333 450,288"/>
+    <polygon points="370,265 410,288 410,333 370,356 330,333 330,288"/>
+    <polygon points="550,288 590,311 590,356 550,379 510,356 510,311"/>
+    <polygon points="310,288 350,311 350,356 310,379 270,356 270,311"/>
+  </g>
+  <!-- Brighter hexagon cluster in center -->
+  <g stroke="#1aff5a" fill="none" stroke-width="1.5" opacity="0.15" filter="url(#glow)">
+    <polygon points="430,310 470,333 470,378 430,401 390,378 390,333"/>
+    <polygon points="490,333 530,356 530,401 490,424 450,401 450,356"/>
+    <polygon points="370,333 410,356 410,401 370,424 330,401 330,356"/>
+    <polygon points="430,378 470,401 470,446 430,469 390,446 390,401"/>
+    <polygon points="490,401 530,424 530,469 490,492 450,469 450,424"/>
+    <polygon points="370,401 410,424 410,469 370,492 330,469 330,424"/>
+    <polygon points="430,446 470,469 470,514 430,537 390,514 390,469"/>
+  </g>
+  <!-- Neon center hexagon -->
+  <polygon points="430,360 480,389 480,447 430,476 380,447 380,389" 
+           fill="#0a2618" stroke="#1aff5a" stroke-width="2" opacity="0.6" filter="url(#neonGlow)"/>
+  <!-- More scattered hexagons at edges -->
+  <g stroke="#14cc48" fill="none" stroke-width="0.8" opacity="0.06">
+    <polygon points="100,400 140,423 140,468 100,491 60,468 60,423"/>
+    <polygon points="160,423 200,446 200,491 160,514 120,491 120,446"/>
+    <polygon points="100,491 140,514 140,559 100,582 60,559 60,514"/>
+    <polygon points="700,300 740,323 740,368 700,391 660,368 660,323"/>
+    <polygon points="760,323 800,346 800,391 760,414 720,391 720,346"/>
+    <polygon points="700,391 740,414 740,459 700,482 660,459 660,414"/>
+    <polygon points="200,700 240,723 240,768 200,791 160,768 160,723"/>
+    <polygon points="600,650 640,673 640,718 600,741 560,718 560,673"/>
+  </g>
+  <!-- Gradient fills on some hexagons -->
+  <polygon points="430,360 480,389 480,447 430,476 380,447 380,389" fill="#1aff5a" opacity="0.05"/>
+  <polygon points="100,400 140,423 140,468 100,491 60,468 60,423" fill="#1aff5a" opacity="0.03"/>
+  <polygon points="700,300 740,323 740,368 700,391 660,368 660,323" fill="#1aff5a" opacity="0.03"/>
+  <!-- Small glow dots at hex centers -->
+  <g opacity="0.3">
+    <circle cx="430" cy="418" r="3" fill="#1aff5a" filter="url(#glow)"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="3s" repeatCount="indefinite"/></circle>
+    <circle cx="100" cy="446" r="2" fill="#14cc48"/>
+    <circle cx="700" cy="346" r="2" fill="#14cc48"/>
+    <circle cx="200" cy="746" r="1.5" fill="#14cc48"/>
+    <circle cx="600" cy="696" r="1.5" fill="#14cc48"/>
+  </g>
+</svg>

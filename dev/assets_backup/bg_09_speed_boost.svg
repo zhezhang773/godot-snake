@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#18120e"/>
+      <stop offset="100%" stop-color="#0a0806"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bigGlow"><feGaussianBlur stdDeviation="15"/></filter>
+    <filter id="fireGlow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="boostAmbient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff6600" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ff4400" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Boost ambient orange glow -->
+  <circle cx="430" cy="430" r="300" fill="url(#boostAmbient)" filter="url(#bigGlow)"/>
+  <!-- Grid lines -->
+  <g stroke="#3a2010" stroke-width="0.5" opacity="0.1">
+    <line x1="0" y1="43" x2="860" y2="43"/><line x1="0" y1="86" x2="860" y2="86"/>
+    <line x1="0" y1="129" x2="860" y2="129"/><line x1="0" y1="172" x2="860" y2="172"/>
+    <line x1="0" y1="215" x2="860" y2="215"/><line x1="0" y1="258" x2="860" y2="258"/>
+    <line x1="0" y1="301" x2="860" y2="301"/><line x1="0" y1="344" x2="860" y2="344"/>
+    <line x1="0" y1="387" x2="860" y2="387"/><line x1="0" y1="430" x2="860" y2="430"/>
+    <line x1="0" y1="473" x2="860" y2="473"/><line x1="0" y1="516" x2="860" y2="516"/>
+    <line x1="0" y1="559" x2="860" y2="559"/><line x1="0" y1="602" x2="860" y2="602"/>
+    <line x1="0" y1="645" x2="860" y2="645"/><line x1="0" y1="688" x2="860" y2="688"/>
+    <line x1="0" y1="731" x2="860" y2="731"/><line x1="0" y1="774" x2="860" y2="774"/>
+    <line x1="0" y1="817" x2="860" y2="817"/>
+    <line x1="43" y1="0" x2="43" y2="860"/><line x1="86" y1="0" x2="86" y2="860"/>
+    <line x1="129" y1="0" x2="129" y2="860"/><line x1="172" y1="0" x2="172" y2="860"/>
+    <line x1="215" y1="0" x2="215" y2="860"/><line x1="258" y1="0" x2="258" y2="860"/>
+    <line x1="301" y1="0" x2="301" y2="860"/><line x1="344" y1="0" x2="344" y2="860"/>
+    <line x1="387" y1="0" x2="387" y2="860"/><line x1="430" y1="0" x2="430" y2="860"/>
+    <line x1="473" y1="0" x2="473" y2="860"/><line x1="516" y1="0" x2="516" y2="860"/>
+    <line x1="559" y1="0" x2="559" y2="860"/><line x1="602" y1="0" x2="602" y2="860"/>
+    <line x1="645" y1="0" x2="645" y2="860"/><line x1="688" y1="0" x2="688" y2="860"/>
+    <line x1="731" y1="0" x2="731" y2="860"/><line x1="774" y1="0" x2="774" y2="860"/>
+    <line x1="817" y1="0" x2="817" y2="860"/>
+  </g>
+  <!-- Speed lines (motion blur effect) -->
+  <g stroke="#ff6600" stroke-width="2" opacity="0.1" stroke-linecap="round">
+    <line x1="100" y1="350" x2="700" y2="350"/>
+    <line x1="150" y1="380" x2="750" y2="380"/>
+    <line x1="50" y1="410" x2="650" y2="410"/>
+    <line x1="120" y1="440" x2="720" y2="440"/>
+    <line x1="80" y1="470" x2="680" y2="470"/>
+    <line x1="130" y1="500" x2="730" y2="500"/>
+  </g>
+  <!-- Boost snake - fast moving right -->
+  <g filter="url(#glow)">
+    <!-- Body segments with orange tint increasing toward tail -->
+    <rect x="520" y="414" width="32" height="32" rx="4" fill="#cc6622" opacity="0.45"/>
+    <rect x="486" y="416" width="30" height="30" rx="4" fill="#cc7733" opacity="0.5"/>
+    <rect x="454" y="418" width="28" height="28" rx="3" fill="#bb8833" opacity="0.55"/>
+    <rect x="424" y="419" width="27" height="27" rx="3" fill="#aa9933" opacity="0.6"/>
+    <rect x="395" y="421" width="25" height="25" rx="3" fill="#22aa55" opacity="0.65"/>
+    <rect x="368" y="422" width="24" height="24" rx="3" fill="#22bb55" opacity="0.7"/>
+    <rect x="342" y="423" width="23" height="23" rx="3" fill="#1acc48" opacity="0.75"/>
+    <!-- Head (bright green with orange glow) -->
+    <rect x="316" y="424" width="24" height="24" rx="4" fill="#1aff5a" opacity="0.9"/>
+    <circle cx="334" cy="432" r="6" fill="white" opacity="0.9"/>
+    <circle cx="336" cy="431" r="3" fill="#ff6600"/>
+    <circle cx="320" cy="432" r="6" fill="white" opacity="0.9"/>
+    <circle cx="318" cy="431" r="3" fill="#ff6600"/>
+  </g>
+  <!-- Head fire/boost glow -->
+  <circle cx="328" cy="436" r="35" fill="#ff6600" opacity="0.08" filter="url(#fireGlow)"/>
+  <!-- Fire trail particles behind head -->
+  <g fill="#ff6600" opacity="0.5" filter="url(#glow)">
+    <circle cx="310" cy="440" r="4" opacity="0.6"><animate attributeName="opacity" values="0.6;0.2;0.6" dur="0.5s" repeatCount="indefinite"/></circle>
+    <circle cx="298" cy="435" r="3" opacity="0.4"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.4s" repeatCount="indefinite"/></circle>
+    <circle cx="305" cy="445" r="3.5" opacity="0.5"><animate attributeName="opacity" values="0.5;0.15;0.5" dur="0.6s" repeatCount="indefinite"/></circle>
+    <circle cx="290" cy="442" r="2.5" opacity="0.3"><animate attributeName="opacity" values="0.3;0.05;0.3" dur="0.35s" repeatCount="indefinite"/></circle>
+  </g>
+  <!-- Tail fire particles -->
+  <g fill="#ff4400" opacity="0.4" filter="url(#glow)">
+    <circle cx="545" cy="430" r="3"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="0.3s" repeatCount="indefinite"/></circle>
+    <circle cx="555" cy="435" r="2.5"><animate attributeName="opacity" values="0.3;0.05;0.3" dur="0.4s" repeatCount="indefinite"/></circle>
+    <circle cx="550" cy="425" r="2"><animate attributeName="opacity" values="0.35;0.08;0.35" dur="0.35s" repeatCount="indefinite"/></circle>
+  </g>
+  <!-- Food being chased -->
+  <circle cx="680" cy="430" r="25" fill="#ff3b3b" opacity="0.1" filter="url(#bigGlow)"/>
+  <circle cx="680" cy="430" r="10" fill="#ff4444" opacity="0.7" filter="url(#glow)"/>
+  <circle cx="676" cy="425" r="3.5" fill="#ff8888" opacity="0.6"/>
+  <!-- "BOOST x2" style speed indicator glow at bottom -->
+  <rect x="330" y="780" width="200" height="36" rx="18" fill="#1a0800" opacity="0.6"/>
+  <rect x="330" y="780" width="200" height="36" rx="18" fill="none" stroke="#ff6600" stroke-width="1.5" opacity="0.3"/>
+  <text x="430" y="804" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="16" fill="#ff8833" opacity="0.4" letter-spacing="3">BOOST x2</text>
+</svg>

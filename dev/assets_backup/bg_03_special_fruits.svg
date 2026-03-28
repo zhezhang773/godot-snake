@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 860" width="860" height="860">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#121828"/>
+      <stop offset="100%" stop-color="#080c16"/>
+    </radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="softGlow"><feGaussianBlur stdDeviation="20"/></filter>
+    <!-- Ghost: purple -->
+    <radialGradient id="g_ghost" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#b34dff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#7a2ff0" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Shield: gold -->
+    <radialGradient id="g_shield" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffd619" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#cc9900" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Rain: orange -->
+    <radialGradient id="g_rain" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff9900" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#cc6600" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Pass: violet -->
+    <radialGradient id="g_pass" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#9933ff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#6611cc" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Speed Up: red-orange -->
+    <radialGradient id="g_speed" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff4d1a" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#cc2200" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Speed Down: blue -->
+    <radialGradient id="g_slow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3380ff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1a55cc" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="860" height="860" fill="url(#bg)"/>
+  <!-- Ambient glow spots -->
+  <circle cx="160" cy="240" r="120" fill="url(#g_ghost)" filter="url(#softGlow)" opacity="0.3"/>
+  <circle cx="700" cy="240" r="120" fill="url(#g_shield)" filter="url(#softGlow)" opacity="0.3"/>
+  <circle cx="430" cy="430" r="140" fill="url(#g_rain)" filter="url(#softGlow)" opacity="0.15"/>
+  <circle cx="160" cy="620" r="120" fill="url(#g_pass)" filter="url(#softGlow)" opacity="0.3"/>
+  <circle cx="700" cy="620" r="120" fill="url(#g_speed)" filter="url(#softGlow)" opacity="0.3"/>
+  <circle cx="430" cy="700" r="100" fill="url(#g_slow)" filter="url(#softGlow)" opacity="0.25"/>
+  <!-- Ghost fruit - top left -->
+  <g transform="translate(160,240)" filter="url(#glow)">
+    <circle r="36" fill="#b34dff" opacity="0.25"/>
+    <circle r="22" fill="#b34dff" opacity="0.7"/>
+    <circle r="22" fill="none" stroke="#d08fff" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="-5" cy="-5" r="6" fill="#d9b3ff" opacity="0.5"/>
+    <!-- Ghost icon: G -->
+    <text x="0" y="7" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="bold" fill="white" opacity="0.85">G</text>
+  </g>
+  <!-- Shield fruit - top right -->
+  <g transform="translate(700,240)" filter="url(#glow)">
+    <circle r="36" fill="#ffd619" opacity="0.25"/>
+    <circle r="22" fill="#ffc107" opacity="0.7"/>
+    <circle r="22" fill="none" stroke="#ffe066" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="-5" cy="-5" r="6" fill="#fff3b3" opacity="0.5"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="bold" fill="#553300" opacity="0.85">S</text>
+  </g>
+  <!-- Rain fruit - center -->
+  <g transform="translate(430,430)" filter="url(#glow)">
+    <circle r="36" fill="#ff9900" opacity="0.25"/>
+    <circle r="22" fill="#ff9900" opacity="0.7"/>
+    <circle r="22" fill="none" stroke="#ffb84d" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="-5" cy="-5" r="6" fill="#ffe0b3" opacity="0.5"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="bold" fill="white" opacity="0.85">F</text>
+  </g>
+  <!-- Pass fruit - bottom left -->
+  <g transform="translate(160,620)" filter="url(#glow)">
+    <circle r="36" fill="#9933ff" opacity="0.25"/>
+    <circle r="22" fill="#9933ff" opacity="0.7"/>
+    <circle r="22" fill="none" stroke="#bb77ff" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="-5" cy="-5" r="6" fill="#d9b3ff" opacity="0.5"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="bold" fill="white" opacity="0.85">P</text>
+  </g>
+  <!-- Speed Up fruit - bottom right -->
+  <g transform="translate(700,620)" filter="url(#glow)">
+    <circle r="36" fill="#ff4d1a" opacity="0.25"/>
+    <circle r="22" fill="#ff4d1a" opacity="0.7"/>
+    <circle r="22" fill="none" stroke="#ff8055" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="-5" cy="-5" r="6" fill="#ffb399" opacity="0.5"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="bold" fill="white" opacity="0.85">U</text>
+  </g>
+  <!-- Speed Down fruit - bottom center -->
+  <g transform="translate(430,700)" filter="url(#glow)">
+    <circle r="36" fill="#3380ff" opacity="0.25"/>
+    <circle r="22" fill="#3380ff" opacity="0.7"/>
+    <circle r="22" fill="none" stroke="#66a3ff" stroke-width="1.5" opacity="0.5"/>
+    <circle cx="-5" cy="-5" r="6" fill="#b3d4ff" opacity="0.5"/>
+    <text x="0" y="7" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="bold" fill="white" opacity="0.85">D</text>
+  </g>
+  <!-- Connecting lines between fruits (subtle) -->
+  <g stroke="white" stroke-width="0.5" opacity="0.06" stroke-dasharray="4,8">
+    <line x1="160" y1="240" x2="700" y2="240"/>
+    <line x1="160" y1="240" x2="160" y2="620"/>
+    <line x1="700" y1="240" x2="700" y2="620"/>
+    <line x1="160" y1="620" x2="700" y2="620"/>
+    <line x1="160" y1="240" x2="430" y2="430"/>
+    <line x1="700" y1="240" x2="430" y2="430"/>
+    <line x1="160" y1="620" x2="430" y2="430"/>
+    <line x1="700" y1="620" x2="430" y2="430"/>
+  </g>
+  <!-- Sparkle particles -->
+  <g opacity="0.4">
+    <circle cx="300" cy="350" r="1.5" fill="#ffd619"><animate attributeName="opacity" values="0.2;0.8;0.2" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="560" cy="500" r="1.5" fill="#b34dff"><animate attributeName="opacity" values="0.3;0.9;0.3" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="380" cy="160" r="2" fill="#ff9900"><animate attributeName="opacity" values="0.2;0.7;0.2" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="580" cy="750" r="1.8" fill="#3380ff"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.2s" repeatCount="indefinite"/></circle>
+    <circle cx="80" cy="430" r="2" fill="#9933ff"><animate attributeName="opacity" values="0.2;0.7;0.2" dur="3s" repeatCount="indefinite"/></circle>
+    <circle cx="780" cy="430" r="1.5" fill="#ff4d1a"><animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.7s" repeatCount="indefinite"/></circle>
+  </g>
+</svg>
