@@ -3347,59 +3347,80 @@ func _river_sparkles(x: int, y: int, px: float, py: float, s: int) -> void:
 	if sp2 > 0.7:
 		draw_circle(Vector2(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7), 1.2, Color(0.5, 0.7, 1.0, sp2 * 0.25))
 
-# --- Mountain tile: rounded dome-shaped hill (not triangle) ---
+# --- Mountain tile: irregular rocky hill (like forest clusters) ---
 func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 	var s: int = x * 71 + y * 131
 	
 	# Brown earthy colors
-	var base_color: Color = Color(0.52, 0.38, 0.26)      # 主色 - 棕褐色
-	var shadow_color: Color = Color(0.38, 0.26, 0.16)    # 阴影 - 深棕
-	var mid_color: Color = Color(0.58, 0.42, 0.30)       # 过渡色
-	var highlight_color: Color = Color(0.72, 0.55, 0.40) # 高光 - 浅棕
-	var top_color: Color = Color(0.78, 0.62, 0.48)       # 顶部 - 更浅
+	var shadow_color: Color = Color(0.35, 0.24, 0.15)
+	var base_color: Color = Color(0.48, 0.34, 0.22)
+	var mid_color: Color = Color(0.55, 0.40, 0.27)
+	var light_color: Color = Color(0.65, 0.48, 0.35)
+	var top_color: Color = Color(0.75, 0.58, 0.42)
 	
-	var cx: float = px + CELL_SIZE * 0.5  # 中心X
-	var cy: float = py + CELL_SIZE * 0.5  # 中心Y
+	# 1. 底部大簇（不规则分布，类似森林策略）
+	var base_blobs: Array[Array] = []
+	for i in range(7):
+		base_blobs.append([
+			px + 6.0 + float((s + i * 23) % 28),
+			py + 15.0 + float((s + i * 37) % 20),
+			9.0 + float((s + i * 13) % 7)
+		])
+	for b in base_blobs:
+		draw_circle(Vector2(b[0] + 1.0, b[1] + 1.0), b[2], shadow_color)
+	for b in base_blobs:
+		draw_circle(Vector2(b[0], b[1]), b[2], base_color)
 	
-	# 1. 底层大圆（圆润的基础形状）
-	draw_circle(Vector2(cx, cy + 4.0), 18.0, shadow_color)
-	
-	# 2. 中层圆（主体）
-	draw_circle(Vector2(cx, cy + 2.0), 16.0, base_color)
-	
-	# 3. 中上层（过渡）
-	draw_circle(Vector2(cx, cy), 14.0, mid_color)
-	
-	# 4. 上层（高光区域）
-	draw_circle(Vector2(cx, cy - 2.0), 11.0, highlight_color)
-	
-	# 5. 顶部圆润小山丘
-	draw_circle(Vector2(cx, cy - 5.0), 7.0, top_color)
-	draw_circle(Vector2(cx, cy - 7.0), 4.0, Color(0.85, 0.70, 0.55))
-	
-	# 6. 左侧阴影（增加立体感）
-	draw_circle(Vector2(cx - 8.0, cy + 2.0), 10.0, Color(0.42, 0.30, 0.20, 0.7))
-	draw_circle(Vector2(cx - 6.0, cy - 2.0), 8.0, Color(0.48, 0.35, 0.24, 0.6))
-	
-	# 7. 右侧高光
-	draw_circle(Vector2(cx + 7.0, cy), 9.0, Color(0.65, 0.48, 0.35, 0.5))
-	
-	# 8. 岩石纹理点缀
+	# 2. 中层簇（往上收缩）
+	var mid_blobs: Array[Array] = []
 	for i in range(5):
-		var rx: float = px + 8.0 + float((s + i * 19) % 24)
-		var ry: float = py + 10.0 + float((s + i * 29) % 20)
-		var rsize: float = 1.5 + float((s + i * 11) % 3)
-		draw_circle(Vector2(rx, ry), rsize, Color(0.32, 0.22, 0.14))
-		# 岩石高光
-		draw_circle(Vector2(rx - 0.3, ry - 0.3), rsize * 0.4, Color(0.45, 0.35, 0.25))
+		mid_blobs.append([
+			px + 8.0 + float((s + i * 31) % 24),
+			py + 10.0 + float((s + i * 43) % 16),
+			7.0 + float((s + i * 17) % 6)
+		])
+	for b in mid_blobs:
+		draw_circle(Vector2(b[0], b[1]), b[2], mid_color)
 	
-	# 9. 底部草丛/植被（绿色点缀）
+	# 3. 上层簇（更靠上，更小）
+	var upper_blobs: Array[Array] = []
 	for i in range(4):
-		var gx: float = px + 5.0 + float((s + i * 17) % 30)
-		var gy: float = py + CELL_SIZE - 4.0 + float((s + i * 23) % 6)
-		draw_circle(Vector2(gx, gy), 2.0 + float((s + i) % 2), Color(0.30, 0.40, 0.18))
-		# 草尖高光
-		draw_circle(Vector2(gx, gy - 1.0), 0.8, Color(0.40, 0.52, 0.22))
+		upper_blobs.append([
+			px + 10.0 + float((s + i * 29) % 20),
+			py + 6.0 + float((s + i * 41) % 12),
+			5.0 + float((s + i * 11) % 5)
+		])
+	for b in upper_blobs:
+		draw_circle(Vector2(b[0], b[1]), b[2], light_color)
+	
+	# 4. 顶部小簇（最高处）
+	var top_blobs: Array[Array] = []
+	for i in range(3):
+		top_blobs.append([
+			px + 14.0 + float((s + i * 19) % 12),
+			py + 4.0 + float((s + i * 23) % 8),
+			3.0 + float((s + i * 7) % 4)
+		])
+	for b in top_blobs:
+		draw_circle(Vector2(b[0], b[1]), b[2], top_color)
+	
+	# 5. 岩石纹理（随机散落的小黑点）
+	for i in range(6):
+		var rx: float = px + 5.0 + float((s + i * 47) % 30)
+		var ry: float = py + 8.0 + float((s + i * 53) % 24)
+		var rsize: float = 1.0 + float((s + i * 13) % 3)
+		draw_circle(Vector2(rx, ry), rsize, Color(0.30, 0.20, 0.12))
+		# 岩石边缘高光
+		draw_circle(Vector2(rx - 0.2, ry - 0.2), rsize * 0.5, Color(0.42, 0.32, 0.22))
+	
+	# 6. 底部草丛（绿色点缀，像森林的地面装饰）
+	for i in range(5):
+		var gx: float = px + 4.0 + float((s + i * 37) % 32)
+		var gy: float = py + CELL_SIZE - 5.0 + float((s + i * 29) % 8)
+		var gsize: float = 2.0 + float((s + i * 17) % 3)
+		draw_circle(Vector2(gx, gy), gsize, Color(0.32, 0.42, 0.20))
+		# 草尖
+		draw_circle(Vector2(gx, gy - 0.8), gsize * 0.4, Color(0.42, 0.55, 0.25))
 
 func _draw_overlay(alpha: float) -> void:
 	draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), Color(0, 0, 0, alpha))
