@@ -257,6 +257,7 @@ var combo_consume_wormholes: Array[Dictionary] = []
 var combo_wormhole_timer: float = 0.0
 var combo_double_score_active: bool = false
 var combo_double_score_timer: float = 0.0
+var combo_speed_restore_timer: float = 0.0  # For level 1 speed boost
 
 # =========================================================
 # Particles
@@ -579,6 +580,7 @@ func _reset_game() -> void:
 	combo_wormhole_timer = 0.0
 	combo_double_score_active = false
 	combo_double_score_timer = 0.0
+	combo_speed_restore_timer = 0.0
 	
 	# Calculate base speed based on level (3% faster per level, max 100% faster)
 	var level_speed_mult: float = 1.0 + min((gate_level - 1) * LEVEL_SPEED_INCREASE, MAX_SPEED_INCREASE)
@@ -797,6 +799,14 @@ func _process(delta: float) -> void:
 			combo_consume_wormholes.clear()
 			combo_wormhole_timer = 0.0
 			_spawn_floating_text(Loc.t("float_magma_end"), segments[0] if not segments.is_empty() else Vector2i(0, 0), Color(0.9, 0.3, 0.1), 16)
+	
+	# Speed restore timer for combo level 1
+	if combo_speed_restore_timer > 0.0:
+		combo_speed_restore_timer -= delta
+		if combo_speed_restore_timer <= 0.0:
+			# Restore speed (double it back)
+			game_speed *= 2.0
+			combo_speed_restore_timer = 0.0
 	
 	# Magma damage and burning effect
 	if game_started and not game_over:
@@ -1452,14 +1462,14 @@ func _consume_combo() -> void:
 			wall_stop_active = true
 			wall_stop_timer = 10.0
 			_spawn_floating_text("+800 INVINCIBLE!", head_pos, Color(1.0, 0.2, 0.4), 22)
+		_:
+			pass  # Default case, should not reach here
 	
 	if audio_manager:
 		audio_manager.play_special_appear()
 
 func _create_speed_restore_timer(duration: float) -> void:
-	# Simple timer using a callback - we'll handle this in _process
-	# For now, just store the restore time
-	pass
+	combo_speed_restore_timer = duration
 
 func _spawn_combo_wormholes() -> void:
 	combo_consume_wormholes.clear()
