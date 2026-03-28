@@ -130,6 +130,8 @@ var _translations: Dictionary = {
 	"float_wallpass":       {"en": "WALL PASS!",          "zh": "穿墙！"},
 	"float_speedup":        {"en": "SPEED +",             "zh": "加速 +"},
 	"float_speeddown":      {"en": "SPEED -",             "zh": "减速 -"},
+	"float_magma":          {"en": "MAGMA POWER!",        "zh": "岩浆之力！"},
+	"float_magma_end":      {"en": "MAGMA FADED",         "zh": "岩浆消退"},
 	"float_seg":            {"en": "-%d seg",             "zh": "-%d 节"},
 	"float_wormhole":       {"en": "WARP!",               "zh": "穿越！"},
 }

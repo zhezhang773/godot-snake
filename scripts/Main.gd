@@ -86,8 +86,13 @@ const GATE_OPEN_SCORE_PER_LEVEL: int = 50
 const WORMHOLE_MIN_DIST: int = 5
 
 # Special fruit types
-enum SpecialType { GHOST, WALL_STOP, FOOD_RAIN, WALL_PASS, SPEED_UP, SPEED_DOWN }
-const SPECIAL_TYPE_COUNT: int = 6
+enum SpecialType { GHOST, WALL_STOP, FOOD_RAIN, WALL_PASS, SPEED_UP, SPEED_DOWN, MAGMA_FRUIT }
+const SPECIAL_TYPE_COUNT: int = 7
+
+# Magma fruit effect
+const MAGMA_FRUIT_DURATION: float = 10.0
+const MAGMA_FRUIT_SPEED_MULTIPLIER: float = 2.0
+const MAGMA_FRUIT_SCORE_MULTIPLIER: int = 2
 
 
 
@@ -225,6 +230,10 @@ var wall_stop_active: bool = false
 var wall_stop_timer: float = 0.0
 var wall_pass_active: bool = false
 var wall_pass_timer: float = 0.0
+
+# Magma fruit effect
+var magma_fruit_active: bool = false
+var magma_fruit_timer: float = 0.0
 
 # =========================================================
 # Particles
@@ -534,6 +543,8 @@ func _reset_game() -> void:
 	is_burning = false
 	burning_timer = 0.0
 	burning_damage_timer = 0.0
+	magma_fruit_active = false
+	magma_fruit_timer = 0.0
 	game_speed = 0.3
 	boosted = false
 	boost_glow = 0.0
@@ -729,6 +740,14 @@ func _process(delta: float) -> void:
 			wall_pass_active = false
 			wall_pass_timer = 0.0
 	
+	# Magma fruit effect timer
+	if magma_fruit_active:
+		magma_fruit_timer -= delta
+		if magma_fruit_timer <= 0.0:
+			magma_fruit_active = false
+			magma_fruit_timer = 0.0
+			_spawn_floating_text(Loc.t("float_magma_end"), segments[0] if not segments.is_empty() else Vector2i(0, 0), Color(0.9, 0.3, 0.1), 16)
+	
 	# Magma damage and burning effect
 	if game_started and not game_over:
 		if is_on_magma:
@@ -826,6 +845,9 @@ func _process(delta: float) -> void:
 	var effective_speed: float = game_speed
 	if boosted:
 		effective_speed = game_speed * BOOST_MULTIPLIER
+	# Magma fruit: double speed
+	if magma_fruit_active:
+		effective_speed *= MAGMA_FRUIT_SPEED_MULTIPLIER
 	if not segments.is_empty():
 		if _get_terrain(segments[0].x, segments[0].y) == Terrain.RIVER:
 			effective_speed *= (1.0 + RIVER_SPEED_PENALTY)
@@ -1125,6 +1147,11 @@ func _eat_food(pos: Vector2i) -> void:
 	var bonus: int = 10
 	if combo >= 3:
 		bonus += combo * 2
+	
+	# Magma fruit: double score
+	if magma_fruit_active:
+		bonus *= MAGMA_FRUIT_SCORE_MULTIPLIER
+	
 	total_food_eaten += 1
 	score += bonus
 
@@ -1181,6 +1208,10 @@ func _eat_special_fruit(pos: Vector2i) -> void:
 				special_active = false
 				special_timer = 0.0
 				return
+		SpecialType.MAGMA_FRUIT:
+			magma_fruit_active = true
+			magma_fruit_timer = MAGMA_FRUIT_DURATION
+			_spawn_floating_text(Loc.t("float_magma"), pos, Color(0.9, 0.25, 0.05), 22)
 
 	special_active = false
 	special_timer = 0.0
@@ -2205,6 +2236,15 @@ func _draw_special_food() -> void:
 		SpecialType.SPEED_DOWN:
 			_draw_chevron_left(center.x, center.y, 8.0, icon_color, 3.0)
 			_draw_chevron_left(center.x - 8.0, center.y, 8.0, icon_color, 3.0)
+		SpecialType.MAGMA_FRUIT:
+			# Draw flame icon
+			var flame_color: Color = Color(1.0, 0.3, 0.0, flash_alpha)
+			draw_circle(center + Vector2(0, -3), 6.0, flame_color)
+			draw_circle(center + Vector2(-2, 1), 4.0, Color(1.0, 0.6, 0.1, flash_alpha))
+			draw_circle(center + Vector2(2, 1), 4.0, Color(1.0, 0.6, 0.1, flash_alpha))
+			# M letter
+			draw_string(ThemeDB.fallback_font, Vector2(center.x + 6, center.y - 8),
+				"M", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(1.0, 1.0, 1.0, 0.8 * flash_alpha))
 		_:
 			var icon_char: String
 			match special_type:
