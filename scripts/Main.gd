@@ -55,7 +55,7 @@ const FOOD_LIFETIME: float = 10.0
 const FOOD_WARN_THRESHOLD: float = 3.0
 
 # Terrain
-enum Terrain { GROUND, FOREST, RIVER }
+enum Terrain { GROUND, FOREST, RIVER, MOUNTAIN }
 const NUM_FOREST_CLUSTERS_MIN: int = 6
 const NUM_FOREST_CLUSTERS_MAX: int = 8
 const FOREST_CLUSTER_MIN: int = 12
@@ -65,6 +65,12 @@ const NUM_RIVER_CLUSTERS_MAX: int = 7
 const RIVER_CLUSTER_MIN: int = 10
 const RIVER_CLUSTER_MAX: int = 16
 const RIVER_SPEED_PENALTY: float = 0.7
+
+# Mountain terrain
+const NUM_MOUNTAIN_CLUSTERS_MIN: int = 3
+const NUM_MOUNTAIN_CLUSTERS_MAX: int = 5
+const MOUNTAIN_CLUSTER_MIN: int = 5
+const MOUNTAIN_CLUSTER_MAX: int = 10
 const RIVER_SCORE_INTERVAL: float = 1.0
 const RIVER_SCORE_PENALTY: int = 1
 
@@ -946,6 +952,12 @@ func _game_tick() -> void:
 			death_reason = "wall"
 			_end_game()
 			return
+
+	# Mountain collision - always fatal
+	if _get_terrain(new_head.x, new_head.y) == Terrain.MOUNTAIN:
+		death_reason = "mountain"
+		_end_game()
+		return
 
 	if not ghost_active:
 		for i in range(segments.size()):
@@ -2618,6 +2630,12 @@ func _draw_gameover_screen(W: float, H: float) -> void:
 			box_border_color = Color(0.2, 0.3, 0.8, 0.9)
 			subtitle = Loc.t("gameover_frozen_sub")
 			subtitle_color = Color(0.4, 0.6, 1.0, 0.9)
+		"mountain":
+			title_text = Loc.t("gameover_mountain")
+			title_color = Color(0.85, 0.45, 0.25, 1.0)
+			box_border_color = Color(0.6, 0.3, 0.15, 0.9)
+			subtitle = Loc.t("gameover_mountain_sub")
+			subtitle_color = Color(0.9, 0.55, 0.35, 0.9)
 		_:
 			title_text = Loc.t("gameover_title")
 			title_color = Color(1, 0.3, 0.3, 1.0)
@@ -2991,6 +3009,15 @@ func _generate_terrain() -> void:
 		# Fill interior holes
 		_fill_interior(Terrain.RIVER, 2)
 	_assign_river_variants()
+	
+	# Mountain: generate random clusters (obstacle - crash on hit)
+	var num_mountain: int = randi_range(NUM_MOUNTAIN_CLUSTERS_MIN, NUM_MOUNTAIN_CLUSTERS_MAX)
+	for _i in range(num_mountain):
+		var msize: int = randi_range(MOUNTAIN_CLUSTER_MIN, MOUNTAIN_CLUSTER_MAX)
+		var mx: int = randi_range(2, GRID_WIDTH - 3)
+		var my: int = randi_range(2, GRID_HEIGHT - 3)
+		_grow_cluster(mx, my, msize, Terrain.MOUNTAIN)
+	
 	_generate_wormholes()
 	# Clear spawn area (7x7 center) with safe margin
 	var cx: int = GRID_WIDTH / 2
@@ -3106,6 +3133,8 @@ func _draw_terrain() -> void:
 					_draw_forest_tile(x, y, px, py)
 				Terrain.RIVER:
 					_draw_river_tile(x, y, px, py)
+				Terrain.MOUNTAIN:
+					_draw_mountain_tile(x, y, px, py)
 
 func _draw_ground_tile(x: int, y: int, px: float, py: float) -> void:
 	var tile_color: Color
@@ -3317,6 +3346,42 @@ func _river_sparkles(x: int, y: int, px: float, py: float, s: int) -> void:
 	var sp2: float = sin(anim_timer * 2.8 + float(x) * 1.1 + float(y) * 2.9 + 2.0)
 	if sp2 > 0.7:
 		draw_circle(Vector2(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7), 1.2, Color(0.5, 0.7, 1.0, sp2 * 0.25))
+
+# --- Mountain tile: triangular rocky peaks ---
+func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
+	var s: int = x * 71 + y * 131
+	# Dark rocky base
+	draw_rect(Rect2(px, py, CELL_SIZE, CELL_SIZE), Color(0.08, 0.07, 0.09))
+	# Main mountain body (triangle)
+	var peak_height: float = 28.0 + float((s) % 8)
+	var peak_offset: float = -4.0 + float((s * 3) % 8)
+	var mountain_points: PackedVector2Array = PackedVector2Array([
+		Vector2(px + 5.0, py + CELL_SIZE - 3.0),
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset, py + CELL_SIZE - 3.0 - peak_height),
+		Vector2(px + CELL_SIZE - 5.0, py + CELL_SIZE - 3.0)
+	])
+	# Mountain shadow side
+	draw_polygon(mountain_points, PackedColorArray([Color(0.18, 0.16, 0.20)]))
+	# Highlight side (left)
+	var highlight_points: PackedVector2Array = PackedVector2Array([
+		Vector2(px + 5.0, py + CELL_SIZE - 3.0),
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset, py + CELL_SIZE - 3.0 - peak_height),
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset - 8.0, py + CELL_SIZE - 3.0)
+	])
+	draw_polygon(highlight_points, PackedColorArray([Color(0.28, 0.25, 0.30)]))
+	# Snow cap
+	var snow_points: PackedVector2Array = PackedVector2Array([
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset - 6.0, py + CELL_SIZE - 3.0 - peak_height * 0.65),
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset, py + CELL_SIZE - 3.0 - peak_height),
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset + 6.0, py + CELL_SIZE - 3.0 - peak_height * 0.65),
+		Vector2(px + CELL_SIZE * 0.5 + peak_offset, py + CELL_SIZE - 3.0 - peak_height * 0.45)
+	])
+	draw_polygon(snow_points, PackedColorArray([Color(0.85, 0.88, 0.92)]))
+	# Rocky details
+	for i in range(3):
+		var rx: float = px + 8.0 + float((s + i * 23) % 24)
+		var ry: float = py + 15.0 + float((s + i * 37) % 20)
+		draw_circle(Vector2(rx, ry), 2.0 + float((s + i) % 3), Color(0.12, 0.10, 0.14))
 
 func _draw_overlay(alpha: float) -> void:
 	draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), Color(0, 0, 0, alpha))
