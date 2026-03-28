@@ -3074,7 +3074,21 @@ func _count_mountain_neighbors(x: int, y: int) -> int:
 					count += 1
 	return count
 
+# Check if a cell is adjacent to VOLCANO or MAGMA
+func _is_adjacent_to_volcano_or_magma(x: int, y: int) -> bool:
+	var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
+								 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+	for d in dirs:
+		var nx: int = x + d.x
+		var ny: int = y + d.y
+		if nx >= 0 and nx < GRID_WIDTH and ny >= 0 and ny < GRID_HEIGHT:
+			if tiles[ny][nx] == Terrain.VOLCANO or tiles[ny][nx] == Terrain.MAGMA:
+				return true
+	return false
+
 # Generate volcano at center and flowing magma
+# Rule: Each magma tile must be adjacent to volcano or magma
+# Rule: Each magma cluster must be connected to at least one volcano
 func _generate_volcano_and_magma(cx: int, cy: int) -> void:
 	# Place volcano center (must be on existing mountain or nearby)
 	var best_x: int = cx
@@ -3096,53 +3110,83 @@ func _generate_volcano_and_magma(cx: int, cy: int) -> void:
 	# Place volcano
 	tiles[best_y][best_x] = Terrain.VOLCANO
 	
-	# Generate flowing magma in one direction
-	var directions: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
-									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
-	var flow_dir: Vector2i = directions[randi() % directions.size()]
-	
-	var magma_length: int = randi_range(3, 6)
-	var mx: int = best_x
-	var my: int = best_y
-	
+	# Generate magma flow using BFS-like approach
+	# Each new magma must be adjacent to volcano or existing magma
+	var magma_queue: Array[Vector2i] = [Vector2i(best_x, best_y)]
 	var placed_magma: int = 0
-	var max_attempts: int = magma_length * 3
+	var target_magma: int = randi_range(4, 8)
+	var max_attempts: int = 50
 	var attempts: int = 0
 	
-	while placed_magma < magma_length and attempts < max_attempts:
+	while placed_magma < target_magma and attempts < max_attempts and not magma_queue.is_empty():
 		attempts += 1
-		mx += flow_dir.x
-		my += flow_dir.y
 		
-		if mx < 1 or mx >= GRID_WIDTH - 1 or my < 1 or my >= GRID_HEIGHT - 1:
+		# Pick a random position from queue (volcano or existing magma)
+		var source_idx: int = randi() % magma_queue.size()
+		var source: Vector2i = magma_queue[source_idx]
+		
+		# Try to place magma in a random direction from source
+		var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
+									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+		dirs.shuffle()
+		
+		var placed: bool = false
+		for d in dirs:
+			var nx: int = source.x + d.x
+			var ny: int = source.y + d.y
+			
+			if nx < 1 or nx >= GRID_WIDTH - 1 or ny < 1 or ny >= GRID_HEIGHT - 1:
+				continue
+			
+			# Can only place on GROUND or MOUNTAIN
+			if tiles[ny][nx] != Terrain.GROUND and tiles[ny][nx] != Terrain.MOUNTAIN:
+				continue
+			
+			# Must be adjacent to volcano or magma (connectivity rule)
+			# Note: Since source is volcano/magma, this new tile will be adjacent to source
+			tiles[ny][nx] = Terrain.MAGMA
+			placed_magma += 1
+			magma_queue.append(Vector2i(nx, ny))
+			placed = true
 			break
 		
-		if tiles[my][mx] == Terrain.VOLCANO:
-			continue
+		# If couldn't place from this source, remove it from queue occasionally
+		if not placed and randf() < 0.3:
+			magma_queue.remove_at(source_idx)
+	
+	# Post-process: Remove any magma not connected to volcano (shouldn't happen, but safety check)
+	_validate_magma_connectivity(best_x, best_y)
+
+# Validate and remove orphaned magma (not connected to volcano)
+func _validate_magma_connectivity(volcano_x: int, volcano_y: int) -> void:
+	# Flood fill from volcano to find all connected magma
+	var visited: Array = []
+	for y in range(GRID_HEIGHT):
+		visited.append([])
+		for x in range(GRID_WIDTH):
+			visited[y].append(false)
+	
+	var queue: Array[Vector2i] = [Vector2i(volcano_x, volcano_y)]
+	visited[volcano_y][volcano_x] = true
+	
+	while not queue.is_empty():
+		var current: Vector2i = queue.pop_front()
 		
-		if tiles[my][mx] == Terrain.GROUND or tiles[my][mx] == Terrain.MOUNTAIN:
-			tiles[my][mx] = Terrain.MAGMA
-			placed_magma += 1
-			
-			if randf() < 0.4:
-				var widen_x: int = mx + randi_range(-1, 1)
-				var widen_y: int = my + randi_range(-1, 1)
-				if widen_x >= 1 and widen_x < GRID_WIDTH - 1 and widen_y >= 1 and widen_y < GRID_HEIGHT - 1:
-					if tiles[widen_y][widen_x] == Terrain.GROUND:
-						tiles[widen_y][widen_x] = Terrain.MAGMA
-			
-			if randf() < 0.3 and placed_magma > 1:
-				var branch_dir: Vector2i = Vector2i(flow_dir.y, -flow_dir.x) if randf() < 0.5 else Vector2i(-flow_dir.y, flow_dir.x)
-				var bmx: int = mx + branch_dir.x
-				var bmy: int = my + branch_dir.y
-				if bmx >= 1 and bmx < GRID_WIDTH - 1 and bmy >= 1 and bmy < GRID_HEIGHT - 1:
-					if tiles[bmy][bmx] == Terrain.GROUND or tiles[bmy][bmx] == Terrain.MOUNTAIN:
-						tiles[bmy][bmx] = Terrain.MAGMA
-						var bmx2: int = bmx + branch_dir.x
-						var bmy2: int = bmy + branch_dir.y
-						if bmx2 >= 1 and bmx2 < GRID_WIDTH - 1 and bmy2 >= 1 and bmy2 < GRID_HEIGHT - 1:
-							if tiles[bmy2][bmx2] == Terrain.GROUND:
-								tiles[bmy2][bmx2] = Terrain.MAGMA
+		var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
+									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+		for d in dirs:
+			var nx: int = current.x + d.x
+			var ny: int = current.y + d.y
+			if nx >= 0 and nx < GRID_WIDTH and ny >= 0 and ny < GRID_HEIGHT:
+				if not visited[ny][nx] and (tiles[ny][nx] == Terrain.MAGMA or tiles[ny][nx] == Terrain.VOLCANO):
+					visited[ny][nx] = true
+					queue.append(Vector2i(nx, ny))
+	
+	# Remove any magma not visited (not connected to volcano)
+	for y in range(GRID_HEIGHT):
+		for x in range(GRID_WIDTH):
+			if tiles[y][x] == Terrain.MAGMA and not visited[y][x]:
+				tiles[y][x] = Terrain.GROUND
 
 func _generate_terrain() -> void:
 	tiles.clear()
