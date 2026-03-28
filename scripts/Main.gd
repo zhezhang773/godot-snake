@@ -67,10 +67,10 @@ const RIVER_CLUSTER_MAX: int = 16
 const RIVER_SPEED_PENALTY: float = 0.7
 
 # Mountain terrain
-const NUM_MOUNTAIN_CLUSTERS_MIN: int = 3
-const NUM_MOUNTAIN_CLUSTERS_MAX: int = 5
-const MOUNTAIN_CLUSTER_MIN: int = 5
-const MOUNTAIN_CLUSTER_MAX: int = 10
+const NUM_MOUNTAIN_CLUSTERS_MIN: int = 6
+const NUM_MOUNTAIN_CLUSTERS_MAX: int = 10
+const MOUNTAIN_CLUSTER_MIN: int = 8
+const MOUNTAIN_CLUSTER_MAX: int = 15
 const RIVER_SCORE_INTERVAL: float = 1.0
 const RIVER_SCORE_PENALTY: int = 1
 
@@ -3347,70 +3347,59 @@ func _river_sparkles(x: int, y: int, px: float, py: float, s: int) -> void:
 	if sp2 > 0.7:
 		draw_circle(Vector2(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7), 1.2, Color(0.5, 0.7, 1.0, sp2 * 0.25))
 
-# --- Mountain tile: rounded brown hill filling the cell ---
+# --- Mountain tile: rounded dome-shaped hill (not triangle) ---
 func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 	var s: int = x * 71 + y * 131
 	
-	# Base brown colors (earthy brown tones)
-	var base_color: Color = Color(0.55, 0.40, 0.28)      # 主山体颜色 - 棕褐色
-	var dark_color: Color = Color(0.40, 0.28, 0.18)      # 阴影面 - 深棕色
-	var light_color: Color = Color(0.68, 0.52, 0.38)     # 高光面 - 浅棕色
-	var rock_color: Color = Color(0.35, 0.25, 0.15)      # 岩石点缀 - 深褐色
+	# Brown earthy colors
+	var base_color: Color = Color(0.52, 0.38, 0.26)      # 主色 - 棕褐色
+	var shadow_color: Color = Color(0.38, 0.26, 0.16)    # 阴影 - 深棕
+	var mid_color: Color = Color(0.58, 0.42, 0.30)       # 过渡色
+	var highlight_color: Color = Color(0.72, 0.55, 0.40) # 高光 - 浅棕
+	var top_color: Color = Color(0.78, 0.62, 0.48)       # 顶部 - 更浅
 	
-	# 1. 填满整个格子的底部山体（圆角梯形）
-	var bottom_y: float = py + CELL_SIZE
-	var hill_width: float = CELL_SIZE - 4.0
-	var hill_points: PackedVector2Array = PackedVector2Array([
-		Vector2(px + 2.0, bottom_y),                                    # 左下
-		Vector2(px + CELL_SIZE * 0.5, py + 4.0),                        # 顶部中心（圆润）
-		Vector2(px + CELL_SIZE - 2.0, bottom_y)                         # 右下
-	])
-	draw_polygon(hill_points, PackedColorArray([base_color]))
+	var cx: float = px + CELL_SIZE * 0.5  # 中心X
+	var cy: float = py + CELL_SIZE * 0.5  # 中心Y
 	
-	# 2. 左侧阴影面（增加立体感）
-	var shadow_points: PackedVector2Array = PackedVector2Array([
-		Vector2(px + 2.0, bottom_y),
-		Vector2(px + CELL_SIZE * 0.5, py + 4.0),
-		Vector2(px + CELL_SIZE * 0.35, bottom_y - 8.0),
-		Vector2(px + CELL_SIZE * 0.5, bottom_y - 4.0)
-	])
-	draw_polygon(shadow_points, PackedColorArray([dark_color]))
+	# 1. 底层大圆（圆润的基础形状）
+	draw_circle(Vector2(cx, cy + 4.0), 18.0, shadow_color)
 	
-	# 3. 右侧高光面
-	var light_points: PackedVector2Array = PackedVector2Array([
-		Vector2(px + CELL_SIZE * 0.5, py + 4.0),
-		Vector2(px + CELL_SIZE - 2.0, bottom_y),
-		Vector2(px + CELL_SIZE * 0.6, bottom_y - 6.0),
-		Vector2(px + CELL_SIZE * 0.5, bottom_y - 2.0)
-	])
-	draw_polygon(light_points, PackedColorArray([light_color]))
+	# 2. 中层圆（主体）
+	draw_circle(Vector2(cx, cy + 2.0), 16.0, base_color)
 	
-	# 4. 山顶圆润部分（浅褐色高光）
-	draw_circle(Vector2(px + CELL_SIZE * 0.5, py + 8.0), 10.0, light_color)
-	draw_circle(Vector2(px + CELL_SIZE * 0.5, py + 10.0), 8.0, Color(0.75, 0.58, 0.42))
+	# 3. 中上层（过渡）
+	draw_circle(Vector2(cx, cy), 14.0, mid_color)
 	
-	# 5. 岩石纹理点缀（随机分布）
-	for i in range(4):
-		var rx: float = px + 6.0 + float((s + i * 17) % 28)
-		var ry: float = py + 12.0 + float((s + i * 31) % 24)
-		var rsize: float = 2.0 + float((s + i * 7) % 4)
-		draw_circle(Vector2(rx, ry), rsize, rock_color)
+	# 4. 上层（高光区域）
+	draw_circle(Vector2(cx, cy - 2.0), 11.0, highlight_color)
+	
+	# 5. 顶部圆润小山丘
+	draw_circle(Vector2(cx, cy - 5.0), 7.0, top_color)
+	draw_circle(Vector2(cx, cy - 7.0), 4.0, Color(0.85, 0.70, 0.55))
+	
+	# 6. 左侧阴影（增加立体感）
+	draw_circle(Vector2(cx - 8.0, cy + 2.0), 10.0, Color(0.42, 0.30, 0.20, 0.7))
+	draw_circle(Vector2(cx - 6.0, cy - 2.0), 8.0, Color(0.48, 0.35, 0.24, 0.6))
+	
+	# 7. 右侧高光
+	draw_circle(Vector2(cx + 7.0, cy), 9.0, Color(0.65, 0.48, 0.35, 0.5))
+	
+	# 8. 岩石纹理点缀
+	for i in range(5):
+		var rx: float = px + 8.0 + float((s + i * 19) % 24)
+		var ry: float = py + 10.0 + float((s + i * 29) % 20)
+		var rsize: float = 1.5 + float((s + i * 11) % 3)
+		draw_circle(Vector2(rx, ry), rsize, Color(0.32, 0.22, 0.14))
 		# 岩石高光
-		draw_circle(Vector2(rx - 0.5, ry - 0.5), rsize * 0.4, Color(0.50, 0.38, 0.26))
+		draw_circle(Vector2(rx - 0.3, ry - 0.3), rsize * 0.4, Color(0.45, 0.35, 0.25))
 	
-	# 6. 底部草地/植被边缘（深绿色点缀）
-	for i in range(3):
-		var gx: float = px + 8.0 + float((s + i * 13) % 24)
-		var gy: float = py + CELL_SIZE - 3.0
-		draw_circle(Vector2(gx, gy), 2.5, Color(0.25, 0.35, 0.15))
-		
-	# 7. 山体轮廓线（柔和）
-	var outline_points: PackedVector2Array = PackedVector2Array([
-		Vector2(px + 2.0, bottom_y - 1.0),
-		Vector2(px + CELL_SIZE * 0.5, py + 5.0),
-		Vector2(px + CELL_SIZE - 2.0, bottom_y - 1.0)
-	])
-	draw_polyline(outline_points, Color(0.45, 0.32, 0.22, 0.6), 1.5)
+	# 9. 底部草丛/植被（绿色点缀）
+	for i in range(4):
+		var gx: float = px + 5.0 + float((s + i * 17) % 30)
+		var gy: float = py + CELL_SIZE - 4.0 + float((s + i * 23) % 6)
+		draw_circle(Vector2(gx, gy), 2.0 + float((s + i) % 2), Color(0.30, 0.40, 0.18))
+		# 草尖高光
+		draw_circle(Vector2(gx, gy - 1.0), 0.8, Color(0.40, 0.52, 0.22))
 
 func _draw_overlay(alpha: float) -> void:
 	draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), Color(0, 0, 0, alpha))
