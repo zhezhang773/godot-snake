@@ -91,7 +91,7 @@ const SPECIAL_TYPE_COUNT: int = 7
 
 # Magma fruit effect
 const MAGMA_FRUIT_DURATION: float = 10.0
-const MAGMA_FRUIT_SPEED_MULTIPLIER: float = 2.0
+const MAGMA_FRUIT_SPEED_DIVISOR: float = 2.0  # Divide interval by 2 = double speed
 const MAGMA_FRUIT_SCORE_MULTIPLIER: int = 2
 
 
@@ -849,9 +849,9 @@ func _process(delta: float) -> void:
 	var effective_speed: float = game_speed
 	if boosted:
 		effective_speed = game_speed * BOOST_MULTIPLIER
-	# Magma fruit: double speed
+	# Magma fruit: double speed (halve the interval)
 	if magma_fruit_active:
-		effective_speed *= MAGMA_FRUIT_SPEED_MULTIPLIER
+		effective_speed /= MAGMA_FRUIT_SPEED_DIVISOR
 	if not segments.is_empty():
 		if _get_terrain(segments[0].x, segments[0].y) == Terrain.RIVER:
 			effective_speed *= (1.0 + RIVER_SPEED_PENALTY)
