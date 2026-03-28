@@ -3347,80 +3347,89 @@ func _river_sparkles(x: int, y: int, px: float, py: float, s: int) -> void:
 	if sp2 > 0.7:
 		draw_circle(Vector2(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7), 1.2, Color(0.5, 0.7, 1.0, sp2 * 0.25))
 
-# --- Mountain tile: irregular rocky hill (like forest clusters) ---
+# --- Mountain tile: angular rocky peaks (irregular polygons) ---
 func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 	var s: int = x * 71 + y * 131
 	
 	# Brown earthy colors
-	var shadow_color: Color = Color(0.35, 0.24, 0.15)
-	var base_color: Color = Color(0.48, 0.34, 0.22)
+	var shadow_color: Color = Color(0.32, 0.22, 0.14)
+	var base_color: Color = Color(0.45, 0.32, 0.21)
 	var mid_color: Color = Color(0.55, 0.40, 0.27)
-	var light_color: Color = Color(0.65, 0.48, 0.35)
-	var top_color: Color = Color(0.75, 0.58, 0.42)
+	var light_color: Color = Color(0.68, 0.50, 0.35)
+	var top_color: Color = Color(0.78, 0.60, 0.45)
 	
-	# 1. 底部大簇（不规则分布，类似森林策略）
-	var base_blobs: Array[Array] = []
-	for i in range(7):
-		base_blobs.append([
-			px + 6.0 + float((s + i * 23) % 28),
-			py + 15.0 + float((s + i * 37) % 20),
-			9.0 + float((s + i * 13) % 7)
-		])
-	for b in base_blobs:
-		draw_circle(Vector2(b[0] + 1.0, b[1] + 1.0), b[2], shadow_color)
-	for b in base_blobs:
-		draw_circle(Vector2(b[0], b[1]), b[2], base_color)
+	# Helper to create irregular polygon blob
+	var _draw_angular_blob = func(center_x: float, center_y: float, size: float, color: Color, seed: int) -> void:
+		var points: PackedVector2Array = PackedVector2Array()
+		var num_points: int = 5 + (seed % 3)  # 5-7个角
+		for i in range(num_points):
+			var angle: float = float(i) * TAU / float(num_points)
+			# 不规则半径变化
+			var r_var: float = 0.7 + float((seed + i * 17) % 40) / 100.0
+			var r: float = size * r_var
+			# 添加一些随机扰动
+			var px_off: float = float((seed + i * 13) % 7) - 3.5
+			var py_off: float = float((seed + i * 19) % 7) - 3.5
+			points.append(Vector2(
+				center_x + cos(angle) * r + px_off,
+				center_y + sin(angle) * r + py_off
+			))
+		draw_polygon(points, PackedColorArray([color]))
 	
-	# 2. 中层簇（往上收缩）
-	var mid_blobs: Array[Array] = []
+	# 1. 底部大岩块（宽而扁）
 	for i in range(5):
-		mid_blobs.append([
-			px + 8.0 + float((s + i * 31) % 24),
-			py + 10.0 + float((s + i * 43) % 16),
-			7.0 + float((s + i * 17) % 6)
-		])
-	for b in mid_blobs:
-		draw_circle(Vector2(b[0], b[1]), b[2], mid_color)
+		var bx: float = px + 4.0 + float((s + i * 23) % 32)
+		var by: float = py + 18.0 + float((s + i * 37) % 12)
+		var bsize: float = 10.0 + float((s + i * 13) % 8)
+		_draw_angular_blob.call(bx + 2.0, by + 2.0, bsize, shadow_color, s + i * 7)
+		_draw_angular_blob.call(bx, by, bsize, base_color, s + i * 7)
 	
-	# 3. 上层簇（更靠上，更小）
-	var upper_blobs: Array[Array] = []
+	# 2. 中层岩块（往上堆积）
 	for i in range(4):
-		upper_blobs.append([
-			px + 10.0 + float((s + i * 29) % 20),
-			py + 6.0 + float((s + i * 41) % 12),
-			5.0 + float((s + i * 11) % 5)
-		])
-	for b in upper_blobs:
-		draw_circle(Vector2(b[0], b[1]), b[2], light_color)
+		var mx: float = px + 6.0 + float((s + i * 31) % 28)
+		var my: float = py + 12.0 + float((s + i * 43) % 14)
+		var msize: float = 8.0 + float((s + i * 17) % 6)
+		_draw_angular_blob.call(mx, my, msize, mid_color, s + i * 11 + 100)
 	
-	# 4. 顶部小簇（最高处）
-	var top_blobs: Array[Array] = []
+	# 3. 上层岩块（更尖）
+	for i in range(4):
+		var ux: float = px + 10.0 + float((s + i * 29) % 20)
+		var uy: float = py + 7.0 + float((s + i * 41) % 10)
+		var usize: float = 6.0 + float((s + i * 11) % 5)
+		_draw_angular_blob.call(ux, uy, usize, light_color, s + i * 13 + 200)
+	
+	# 4. 顶部尖峰（棱角最锐利）
 	for i in range(3):
-		top_blobs.append([
-			px + 14.0 + float((s + i * 19) % 12),
-			py + 4.0 + float((s + i * 23) % 8),
-			3.0 + float((s + i * 7) % 4)
+		var tx: float = px + 12.0 + float((s + i * 19) % 16)
+		var ty: float = py + 4.0 + float((s + i * 23) % 6)
+		var tsize: float = 4.0 + float((s + i * 7) % 4)
+		_draw_angular_blob.call(tx, ty, tsize, top_color, s + i * 17 + 300)
+	
+	# 5. 岩石纹理（棱角分明的多边形小石块）
+	for i in range(7):
+		var rx: float = px + 6.0 + float((s + i * 47) % 28)
+		var ry: float = py + 10.0 + float((s + i * 53) % 20)
+		var rsize: float = 2.0 + float((s + i * 13) % 4)
+		_draw_angular_blob.call(rx, ry, rsize, Color(0.30, 0.20, 0.12), s + i * 19 + 400)
+		# 岩石边缘高光（三角形小尖）
+		var spike: PackedVector2Array = PackedVector2Array([
+			Vector2(rx, ry - rsize * 0.8),
+			Vector2(rx - rsize * 0.5, ry + rsize * 0.3),
+			Vector2(rx + rsize * 0.5, ry + rsize * 0.3)
 		])
-	for b in top_blobs:
-		draw_circle(Vector2(b[0], b[1]), b[2], top_color)
+		draw_polygon(spike, PackedColorArray([Color(0.50, 0.38, 0.26)]))
 	
-	# 5. 岩石纹理（随机散落的小黑点）
-	for i in range(6):
-		var rx: float = px + 5.0 + float((s + i * 47) % 30)
-		var ry: float = py + 8.0 + float((s + i * 53) % 24)
-		var rsize: float = 1.0 + float((s + i * 13) % 3)
-		draw_circle(Vector2(rx, ry), rsize, Color(0.30, 0.20, 0.12))
-		# 岩石边缘高光
-		draw_circle(Vector2(rx - 0.2, ry - 0.2), rsize * 0.5, Color(0.42, 0.32, 0.22))
-	
-	# 6. 底部草丛（绿色点缀，像森林的地面装饰）
-	for i in range(5):
-		var gx: float = px + 4.0 + float((s + i * 37) % 32)
-		var gy: float = py + CELL_SIZE - 5.0 + float((s + i * 29) % 8)
-		var gsize: float = 2.0 + float((s + i * 17) % 3)
-		draw_circle(Vector2(gx, gy), gsize, Color(0.32, 0.42, 0.20))
-		# 草尖
-		draw_circle(Vector2(gx, gy - 0.8), gsize * 0.4, Color(0.42, 0.55, 0.25))
+	# 6. 底部草丛（点缀）
+	for i in range(4):
+		var gx: float = px + 5.0 + float((s + i * 37) % 30)
+		var gy: float = py + CELL_SIZE - 4.0 + float((s + i * 29) % 6)
+		# 小三角形草丛
+		var grass: PackedVector2Array = PackedVector2Array([
+			Vector2(gx, gy),
+			Vector2(gx - 2.0, gy + 3.0),
+			Vector2(gx + 2.0, gy + 3.0)
+		])
+		draw_polygon(grass, PackedColorArray([Color(0.30, 0.40, 0.18)]))
 
 func _draw_overlay(alpha: float) -> void:
 	draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), Color(0, 0, 0, alpha))
