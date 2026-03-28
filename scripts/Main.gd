@@ -1262,11 +1262,33 @@ func _spawn_main_food() -> void:
 		trap_countdown = 0.0
 
 func _try_spawn_special() -> void:
+	# First determine the special type
+	special_type = randi() % SPECIAL_TYPE_COUNT
+	
+	# Magma fruit only spawns on magma terrain
+	if special_type == SpecialType.MAGMA_FRUIT:
+		var magma_cells: Array[Vector2i] = []
+		for y in range(GRID_HEIGHT):
+			for x in range(GRID_WIDTH):
+				if tiles[y][x] == Terrain.MAGMA:
+					magma_cells.append(Vector2i(x, y))
+		
+		if magma_cells.is_empty():
+			# No magma available, try another special type
+			special_type = randi() % (SPECIAL_TYPE_COUNT - 1)  # Exclude MAGMA_FRUIT
+		else:
+			special_pos = magma_cells[randi() % magma_cells.size()]
+			special_active = true
+			special_timer = SPECIAL_FOOD_DURATION
+			if audio_manager:
+				audio_manager.play_special_appear()
+			return
+	
+	# For other special types, use normal available cells
 	var available: Array[Vector2i] = _get_available_cells()
 	if available.is_empty():
 		return
 	special_pos = available[randi() % available.size()]
-	special_type = randi() % SPECIAL_TYPE_COUNT
 	special_active = true
 	special_timer = SPECIAL_FOOD_DURATION
 	if audio_manager:
