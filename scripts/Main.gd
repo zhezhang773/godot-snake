@@ -55,7 +55,7 @@ const FOOD_LIFETIME: float = 10.0
 const FOOD_WARN_THRESHOLD: float = 3.0
 
 # Terrain
-enum Terrain { GROUND, FOREST, RIVER, MOUNTAIN }
+enum Terrain { GROUND, FOREST, RIVER, MOUNTAIN, VOLCANO, MAGMA }
 const NUM_FOREST_CLUSTERS_MIN: int = 6
 const NUM_FOREST_CLUSTERS_MAX: int = 8
 const FOREST_CLUSTER_MIN: int = 12
@@ -71,6 +71,10 @@ const NUM_MOUNTAIN_CLUSTERS_MIN: int = 6
 const NUM_MOUNTAIN_CLUSTERS_MAX: int = 10
 const MOUNTAIN_CLUSTER_MIN: int = 8
 const MOUNTAIN_CLUSTER_MAX: int = 15
+
+# Volcano and Magma
+const VOLCANO_MAGMA_DAMAGE_INTERVAL: float = 1.0
+const VOLCANO_MAGMA_DAMAGE_SCORE: int = 50
 const RIVER_SCORE_INTERVAL: float = 1.0
 const RIVER_SCORE_PENALTY: int = 1
 
@@ -135,6 +139,8 @@ var total_food_eaten: int = 0
 var tiles: Array = []
 var river_variants: Array = []
 var river_penalty_timer: float = 0.0
+var magma_damage_timer: float = 0.0
+var is_on_magma: bool = false
 
 # Wormholes
 var wormholes: Array[Dictionary] = []
@@ -515,6 +521,8 @@ func _reset_game() -> void:
 	_generate_terrain()
 	_generate_gate()
 	river_penalty_timer = 0.0
+	magma_damage_timer = 0.0
+	is_on_magma = false
 	game_speed = 0.3
 	boosted = false
 	boost_glow = 0.0
@@ -709,6 +717,21 @@ func _process(delta: float) -> void:
 		if wall_pass_timer <= 0.0:
 			wall_pass_active = false
 			wall_pass_timer = 0.0
+	
+	# Magma damage over time
+	if is_on_magma and game_started and not game_over:
+		magma_damage_timer += delta
+		if magma_damage_timer >= VOLCANO_MAGMA_DAMAGE_INTERVAL:
+			magma_damage_timer = 0.0
+			score -= VOLCANO_MAGMA_DAMAGE_SCORE
+			if score < 0:
+				score = 0
+			# Spawn fire particles
+			if not segments.is_empty():
+				_spawn_particles(segments[0], Color(1.0, 0.3, 0.0), 8, 80.0)
+				_spawn_floating_text("-%d" % VOLCANO_MAGMA_DAMAGE_SCORE, segments[0], Color(1.0, 0.4, 0.1), 16)
+			if audio_manager:
+				audio_manager.play_bomb_explode()
 
 	# Trap
 	if trap_active:
@@ -958,6 +981,9 @@ func _game_tick() -> void:
 		death_reason = "mountain"
 		_end_game()
 		return
+	
+	# Check if on magma (for damage over time)
+	is_on_magma = (_get_terrain(new_head.x, new_head.y) == Terrain.MAGMA)
 
 	if not ghost_active:
 		for i in range(segments.size()):
@@ -2971,6 +2997,82 @@ func _get_terrain(x: int, y: int) -> int:
 		return Terrain.GROUND
 	return tiles[y][x]
 
+# Count neighboring mountain/volcano tiles
+func _count_mountain_neighbors(x: int, y: int) -> int:
+	var count: int = 0
+	for dy in range(-2, 3):
+		for dx in range(-2, 3):
+			if dx == 0 and dy == 0:
+				continue
+			var nx: int = x + dx
+			var ny: int = y + dy
+			if nx >= 0 and nx < GRID_WIDTH and ny >= 0 and ny < GRID_HEIGHT:
+				if tiles[ny][nx] == Terrain.MOUNTAIN or tiles[ny][nx] == Terrain.VOLCANO:
+					count += 1
+	return count
+
+# Generate volcano at center and flowing magma
+func _generate_volcano_and_magma(cx: int, cy: int) -> void:
+	# Place volcano center (must be on existing mountain or nearby)
+	var best_x: int = cx
+	var best_y: int = cy
+	var best_count: int = -1
+	
+	# Find the best spot nearby with most mountains
+	for dy in range(-3, 4):
+		for dx in range(-3, 4):
+			var nx: int = cx + dx
+			var ny: int = cy + dy
+			if nx >= 2 and nx < GRID_WIDTH - 2 and ny >= 2 and ny < GRID_HEIGHT - 2:
+				var count: int = _count_mountain_neighbors(nx, ny)
+				if count > best_count:
+					best_count = count
+					best_x = nx
+					best_y = ny
+	
+	# Place volcano
+	tiles[best_y][best_x] = Terrain.VOLCANO
+	
+	# Generate flowing magma in one direction
+	var directions: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
+									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+	var flow_dir: Vector2i = directions[randi() % directions.size()]
+	
+	var magma_length: int = randi_range(3, 6)
+	var mx: int = best_x
+	var my: int = best_y
+	
+	for i in range(magma_length):
+		mx += flow_dir.x
+		my += flow_dir.y
+		# Occasionally branch
+		if randf() < 0.3 and i > 0:
+			var branch_dir: Vector2i = Vector2i(flow_dir.y, -flow_dir.x) if randf() < 0.5 else Vector2i(-flow_dir.y, flow_dir.x)
+			var bmx: int = mx + branch_dir.x
+			var bmy: int = my + branch_dir.y
+			if bmx >= 1 and bmx < GRID_WIDTH - 1 and bmy >= 1 and bmy < GRID_HEIGHT - 1:
+				if tiles[bmy][bmx] == Terrain.GROUND or tiles[bmy][bmx] == Terrain.MOUNTAIN:
+					tiles[bmy][bmx] = Terrain.MAGMA
+					# Small branch extension
+					var bmx2: int = bmx + branch_dir.x
+					var bmy2: int = bmy + branch_dir.y
+					if bmx2 >= 1 and bmx2 < GRID_WIDTH - 1 and bmy2 >= 1 and bmy2 < GRID_HEIGHT - 1:
+						if tiles[bmy2][bmx2] == Terrain.GROUND:
+							tiles[bmy2][bmx2] = Terrain.MAGMA
+		
+		if mx >= 1 and mx < GRID_WIDTH - 1 and my >= 1 and my < GRID_HEIGHT - 1:
+			if tiles[my][mx] == Terrain.GROUND or tiles[my][mx] == Terrain.MOUNTAIN:
+				tiles[my][mx] = Terrain.MAGMA
+				# Widen the flow occasionally
+				if randf() < 0.4:
+					var widen_x: int = mx + randi_range(-1, 1)
+					var widen_y: int = my + randi_range(-1, 1)
+					if widen_x >= 1 and widen_x < GRID_WIDTH - 1 and widen_y >= 1 and widen_y < GRID_HEIGHT - 1:
+						if tiles[widen_y][widen_x] == Terrain.GROUND:
+							tiles[widen_y][widen_x] = Terrain.MAGMA
+		else:
+			break
+
 func _generate_terrain() -> void:
 	tiles.clear()
 	for y in range(GRID_HEIGHT):
@@ -3011,12 +3113,27 @@ func _generate_terrain() -> void:
 	_assign_river_variants()
 	
 	# Mountain: generate random clusters (obstacle - crash on hit)
+	var mountain_centers: Array[Vector2i] = []
 	var num_mountain: int = randi_range(NUM_MOUNTAIN_CLUSTERS_MIN, NUM_MOUNTAIN_CLUSTERS_MAX)
 	for _i in range(num_mountain):
 		var msize: int = randi_range(MOUNTAIN_CLUSTER_MIN, MOUNTAIN_CLUSTER_MAX)
 		var mx: int = randi_range(2, GRID_WIDTH - 3)
 		var my: int = randi_range(2, GRID_HEIGHT - 3)
 		_grow_cluster(mx, my, msize, Terrain.MOUNTAIN)
+		mountain_centers.append(Vector2i(mx, my))
+	
+	# Generate Volcano in the center of largest mountain cluster
+	if mountain_centers.size() > 0:
+		var largest_center: Vector2i = mountain_centers[0]
+		var max_count: int = 0
+		for center in mountain_centers:
+			var count: int = _count_mountain_neighbors(center.x, center.y)
+			if count > max_count:
+				max_count = count
+				largest_center = center
+		# Place volcano at the densest mountain area
+		if max_count >= 3:
+			_generate_volcano_and_magma(largest_center.x, largest_center.y)
 	
 	_generate_wormholes()
 	# Clear spawn area (7x7 center) with safe margin
@@ -3135,6 +3252,10 @@ func _draw_terrain() -> void:
 					_draw_river_tile(x, y, px, py)
 				Terrain.MOUNTAIN:
 					_draw_mountain_tile(x, y, px, py)
+				Terrain.VOLCANO:
+					_draw_volcano_tile(x, y, px, py)
+				Terrain.MAGMA:
+					_draw_magma_tile(x, y, px, py)
 
 func _draw_ground_tile(x: int, y: int, px: float, py: float) -> void:
 	var tile_color: Color
@@ -3429,6 +3550,139 @@ func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 		var gy: float = py + CELL_SIZE - 3.0 + float((s + i * 29) % 4)
 		draw_circle(Vector2(gx, gy), 2.5, Color(0.35, 0.45, 0.22))
 		draw_circle(Vector2(gx - 0.5, gy - 0.5), 1.0, Color(0.45, 0.58, 0.28))
+
+# --- Volcano tile: dark brown cone with magma pattern ---
+func _draw_volcano_tile(x: int, y: int, px: float, py: float) -> void:
+	var s: int = x * 89 + y * 157
+	
+	# Dark brown/black base
+	var base_color: Color = Color(0.28, 0.20, 0.15)
+	var dark_color: Color = Color(0.20, 0.14, 0.10)
+	var rock_color: Color = Color(0.35, 0.25, 0.18)
+	
+	# Fill background
+	draw_rect(Rect2(px, py, CELL_SIZE, CELL_SIZE), base_color)
+	
+	# Draw volcano cone (triangular shape with gradient)
+	var center_x: float = px + CELL_SIZE * 0.5
+	var base_y: float = py + CELL_SIZE - 2.0
+	var peak_y: float = py + 6.0
+	
+	# Main cone body (dark triangle)
+	var cone_points: PackedVector2Array = PackedVector2Array([
+		Vector2(px + 4.0, base_y),
+		Vector2(center_x, peak_y),
+		Vector2(px + CELL_SIZE - 4.0, base_y)
+	])
+	draw_polygon(cone_points, PackedColorArray([dark_color]))
+	
+	# Left highlight
+	var left_points: PackedVector2Array = PackedVector2Array([
+		Vector2(px + 4.0, base_y),
+		Vector2(center_x, peak_y),
+		Vector2(center_x - 8.0, base_y)
+	])
+	draw_polygon(left_points, PackedColorArray([base_color]))
+	
+	# Magma pattern flowing from top to one side
+	# Find flow direction based on seed
+	var flow_side: int = s % 4  # 0=left, 1=right, 2=bottom-left, 3=bottom-right
+	
+	# Magma streams
+	var magma_color: Color = Color(0.9, 0.25, 0.1)
+	var magma_glow: Color = Color(1.0, 0.5, 0.2)
+	
+	# Central magma at peak
+	draw_circle(Vector2(center_x, peak_y + 4.0), 4.0, magma_color)
+	draw_circle(Vector2(center_x, peak_y + 3.0), 2.5, magma_glow)
+	
+	# Flowing magma stream
+	match flow_side:
+		0:  # Flow left
+			for i in range(4):
+				var mx: float = center_x - 4.0 - float(i * 5)
+				var my: float = peak_y + 6.0 + float(i * 6) + float((s + i) % 3)
+				draw_circle(Vector2(mx, my), 3.5 - float(i) * 0.5, magma_color)
+				draw_circle(Vector2(mx, my - 1.0), 2.0 - float(i) * 0.3, magma_glow)
+		1:  # Flow right
+			for i in range(4):
+				var mx: float = center_x + 4.0 + float(i * 5)
+				var my: float = peak_y + 6.0 + float(i * 6) + float((s + i) % 3)
+				draw_circle(Vector2(mx, my), 3.5 - float(i) * 0.5, magma_color)
+				draw_circle(Vector2(mx, my - 1.0), 2.0 - float(i) * 0.3, magma_glow)
+		2:  # Flow bottom-left
+			for i in range(4):
+				var mx: float = center_x - 3.0 - float(i * 4)
+				var my: float = peak_y + 8.0 + float(i * 5)
+				draw_circle(Vector2(mx, my), 3.5 - float(i) * 0.5, magma_color)
+				draw_circle(Vector2(mx + 1.0, my - 1.0), 2.0 - float(i) * 0.3, magma_glow)
+		3:  # Flow bottom-right
+			for i in range(4):
+				var mx: float = center_x + 3.0 + float(i * 4)
+				var my: float = peak_y + 8.0 + float(i * 5)
+				draw_circle(Vector2(mx, my), 3.5 - float(i) * 0.5, magma_color)
+				draw_circle(Vector2(mx - 1.0, my - 1.0), 2.0 - float(i) * 0.3, magma_glow)
+	
+	# Dark rocks scattered on volcano
+	for i in range(5):
+		var rx: float = px + 6.0 + float((s + i * 23) % 28)
+		var ry: float = py + 10.0 + float((s + i * 31) % 20)
+		var rsize: float = 1.5 + float((s + i * 13) % 3)
+		draw_circle(Vector2(rx, ry), rsize, rock_color)
+	
+	# Small smoke particles at top
+	for i in range(3):
+		var sx: float = center_x + float((s + i * 17) % 8) - 4.0
+		var sy: float = peak_y - 2.0 - float((s + i * 11) % 6)
+		var alpha: float = 0.3 + float((s + i * 7) % 4) / 10.0
+		draw_circle(Vector2(sx, sy), 1.5 + float(i), Color(0.4, 0.35, 0.3, alpha))
+
+# --- Magma tile: flowing lava with animated glow ---
+func _draw_magma_tile(x: int, y: int, px: float, py: float) -> void:
+	var s: int = x * 97 + y * 163
+	var anim_offset: float = anim_timer * 2.0  # For flowing effect
+	
+	# Base dark rock
+	draw_rect(Rect2(px, py, CELL_SIZE, CELL_SIZE), Color(0.22, 0.15, 0.10))
+	
+	# Magma colors
+	var lava_core: Color = Color(0.95, 0.2, 0.05)
+	var lava_mid: Color = Color(0.85, 0.35, 0.1)
+	var lava_edge: Color = Color(0.7, 0.25, 0.08)
+	var rock_dark: Color = Color(0.18, 0.12, 0.08)
+	
+	# Flowing lava pattern (multiple overlapping blobs)
+	var num_blobs: int = 6
+	for i in range(num_blobs):
+		var angle: float = float(i) * TAU / float(num_blobs) + anim_offset * 0.3 + float(s % 10)
+		var dist: float = 8.0 + float((s + i * 17) % 12)
+		var bx: float = px + CELL_SIZE * 0.5 + cos(angle + anim_offset * 0.5) * dist * 0.5
+		var by: float = py + CELL_SIZE * 0.5 + sin(angle + anim_offset * 0.3) * dist * 0.5
+		var br: float = 5.0 + float((s + i * 13) % 6) + sin(anim_offset + float(i)) * 1.5
+		
+		# Edge
+		draw_circle(Vector2(bx, by), br + 2.0, rock_dark)
+		# Mid
+		draw_circle(Vector2(bx, by), br, lava_edge)
+		# Core
+		draw_circle(Vector2(bx, by), br * 0.6, lava_mid)
+		draw_circle(Vector2(bx, by), br * 0.3, lava_core)
+	
+	# Cracks with glowing edges
+	for i in range(3):
+		var cx1: float = px + 5.0 + float((s + i * 29) % 30)
+		var cy1: float = py + 5.0 + float((s + i * 31) % 30)
+		var cx2: float = cx1 + float((s + i * 19) % 20) - 10.0
+		var cy2: float = cy1 + float((s + i * 23) % 20) - 10.0
+		draw_line(Vector2(cx1, cy1), Vector2(cx2, cy2), lava_mid, 2.0)
+		draw_line(Vector2(cx1 + 1.0, cy1), Vector2(cx2 + 1.0, cy2), lava_core, 1.0)
+	
+	# Heat distortion particles
+	for i in range(4):
+		var hx: float = px + 8.0 + float((s + i * 37 + int(anim_offset * 10.0)) % 24)
+		var hy: float = py + 8.0 + float((s + i * 41 + int(anim_offset * 8.0)) % 24)
+		var halpha: float = 0.4 + sin(anim_offset * 3.0 + float(i)) * 0.2
+		draw_circle(Vector2(hx, hy), 2.0, Color(0.9, 0.4, 0.1, halpha))
 
 func _draw_overlay(alpha: float) -> void:
 	draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), Color(0, 0, 0, alpha))

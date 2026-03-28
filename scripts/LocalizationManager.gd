@@ -111,6 +111,7 @@ var _translations: Dictionary = {
 	"gameover_frozen_sub":  {"en": "Your speed reached zero!","zh": "你的速度降到了零！"},
 	"gameover_mountain":    {"en": "CRASHED!",            "zh": "撞山！"},
 	"gameover_mountain_sub":{"en": "You hit a mountain!", "zh": "你撞到山体了！"},
+	"float_burning":        {"en": "BURNING! -%d",        "zh": "燃烧！-%d分"},
 	"gameover_score":       {"en": "Score: %d",           "zh": "分数: %d"},
 	"gameover_stats":       {"en": "Length: %d  |  Food: %d","zh": "长度: %d  |  食物: %d"},
 	"gameover_new_high":    {"en": "NEW HIGH SCORE!",     "zh": "新最高分！"},
