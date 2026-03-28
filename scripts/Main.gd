@@ -75,6 +75,23 @@ const MOUNTAIN_CLUSTER_MAX: int = 15
 # Volcano and Magma
 const VOLCANO_MAGMA_DAMAGE_INTERVAL: float = 1.0
 const VOLCANO_MAGMA_DAMAGE_SCORE: int = 50
+
+# Level progression - terrain unlocks
+const LEVEL_UNLOCK_RIVER: int = 2       # River from level 2
+const LEVEL_UNLOCK_FOREST: int = 3      # Forest and trap from level 3
+const LEVEL_UNLOCK_MOUNTAIN: int = 4    # Mountain from level 4
+const LEVEL_UNLOCK_VOLCANO: int = 5     # Volcano and magma from level 5
+const LEVEL_UNLOCK_WORMHOLE_1: int = 6  # 1 wormhole from level 6
+const LEVEL_UNLOCK_WORMHOLE_2: int = 8  # 2 wormholes from level 8
+const LEVEL_DENSE_TERRAIN: int = 9      # Dense terrain from level 9
+const MAX_TERRAIN_RATIO: float = 0.70   # Max 70% special terrain
+
+# Speed progression
+const BASE_SPEED_MULTIPLIER: float = 1.0
+const LEVEL_SPEED_INCREASE: float = 0.03   # 3% faster per level
+const MAX_SPEED_INCREASE: float = 1.0      # Max 100% faster (half interval)
+const FOOD_SPEED_INCREASE: float = 0.01    # 1% faster per food eaten
+const GATE_SPEED_INCREASE: float = 0.01    # 1% faster per second after gate open
 const RIVER_SCORE_INTERVAL: float = 1.0
 const RIVER_SCORE_PENALTY: int = 1
 
@@ -550,7 +567,10 @@ func _reset_game() -> void:
 	burning_damage_timer = 0.0
 	magma_fruit_active = false
 	magma_fruit_timer = 0.0
-	game_speed = 0.3
+	
+	# Calculate base speed based on level (3% faster per level, max 100% faster)
+	var level_speed_mult: float = 1.0 + min((gate_level - 1) * LEVEL_SPEED_INCREASE, MAX_SPEED_INCREASE)
+	game_speed = 0.3 / level_speed_mult
 	boosted = false
 	boost_glow = 0.0
 	boost_hold_timer = 0.0
@@ -842,6 +862,10 @@ func _process(delta: float) -> void:
 			audio_manager.play_gate_open()
 	if gate_flash > 0.0:
 		gate_flash = max(0.0, gate_flash - delta * 2.5)
+	
+	# Gate open: speed increases by 1% per second
+	if gate_open and game_started and not game_over:
+		game_speed *= (1.0 - GATE_SPEED_INCREASE * delta)
 
 	# Check boost state
 	_check_boost(delta)
@@ -1157,6 +1181,9 @@ func _eat_food(pos: Vector2i) -> void:
 	if magma_fruit_active:
 		bonus *= MAGMA_FRUIT_SCORE_MULTIPLIER
 	
+	# Each food eaten increases speed by 1%
+	game_speed *= (1.0 - FOOD_SPEED_INCREASE)
+	
 	total_food_eaten += 1
 	score += bonus
 
@@ -1265,9 +1292,11 @@ func _spawn_main_food() -> void:
 		return
 	main_food_pos = available[randi() % available.size()]
 	food_spawn_time = food_time
-	if randf() < SPECIAL_SPAWN_CHANCE and not special_active:
+	# Special fruits only from level 2+ (not on level 1)
+	if gate_level >= LEVEL_UNLOCK_RIVER and randf() < SPECIAL_SPAWN_CHANCE and not special_active:
 		_try_spawn_special()
-	if randf() < TRAP_SPAWN_CHANCE and not trap_active and not magma_fruit_active:
+	# Traps (bomb fruit) only from level 3+, not on level 1
+	if gate_level >= LEVEL_UNLOCK_FOREST and randf() < TRAP_SPAWN_CHANCE and not trap_active and not magma_fruit_active:
 		trap_active = true
 		trap_revealed = false
 		trap_countdown = 0.0
@@ -2930,7 +2959,15 @@ func _get_paired_wormhole_pos(pair_id: int, current_pos: Vector2i) -> Vector2i:
 
 func _generate_wormholes() -> void:
 	wormholes.clear()
-	var num_pairs: int = 1 + (randi() % 2)  # 1 or 2 pairs
+	
+	# Determine number of wormhole pairs based on level
+	var num_pairs: int = 0
+	if gate_level >= LEVEL_UNLOCK_WORMHOLE_2:
+		num_pairs = 2  # 2 pairs from level 8
+	elif gate_level >= LEVEL_UNLOCK_WORMHOLE_1:
+		num_pairs = 1  # 1 pair from level 6
+	else:
+		return  # No wormholes before level 6
 	var center_x: int = GRID_WIDTH / 2
 	var center_y: int = GRID_HEIGHT / 2
 	for pair_id in range(num_pairs):
@@ -3339,62 +3376,71 @@ func _generate_terrain() -> void:
 		for x in range(GRID_WIDTH):
 			row.append(Terrain.GROUND)
 		tiles.append(row)
-
-	# Forest: grow from edge of existing forest when possible
-	var num_forest: int = randi_range(NUM_FOREST_CLUSTERS_MIN, NUM_FOREST_CLUSTERS_MAX)
-	for _i in range(num_forest):
-		var fsize: int = randi_range(FOREST_CLUSTER_MIN, FOREST_CLUSTER_MAX)
-		var edge: Vector2i = _find_terrain_edge(Terrain.FOREST)
-		var fx: int; var fy: int
-		if edge.x >= 0:
-			fx = edge.x; fy = edge.y
-		else:
-			fx = randi_range(2, GRID_WIDTH - 3)
-			fy = randi_range(2, GRID_HEIGHT - 3)
-		_grow_cluster(fx, fy, fsize, Terrain.FOREST)
-		# Fill interior holes
-		_fill_interior(Terrain.FOREST, 2)
-
-	# River: grow from edge of existing river when possible
-	var num_river: int = randi_range(NUM_RIVER_CLUSTERS_MIN, NUM_RIVER_CLUSTERS_MAX)
-	for _i in range(num_river):
-		var rsize: int = randi_range(RIVER_CLUSTER_MIN, RIVER_CLUSTER_MAX)
-		var edge: Vector2i = _find_terrain_edge(Terrain.RIVER)
-		var rx: int; var ry: int
-		if edge.x >= 0:
-			rx = edge.x; ry = edge.y
-		else:
-			rx = randi_range(2, GRID_WIDTH - 3)
-			ry = randi_range(2, GRID_HEIGHT - 3)
-		_grow_cluster(rx, ry, rsize, Terrain.RIVER)
-		# Fill interior holes
-		_fill_interior(Terrain.RIVER, 2)
-	_assign_river_variants()
 	
-	# Mountain: generate random clusters (obstacle - crash on hit)
+	# Calculate terrain density multiplier for high levels
+	var density_mult: float = 1.0
+	if gate_level >= LEVEL_DENSE_TERRAIN:
+		# Level 9+ increases terrain density up to 70% max
+		var level_bonus: float = (gate_level - LEVEL_DENSE_TERRAIN + 1) * 0.1
+		density_mult = 1.0 + min(level_bonus, 2.0)  # Up to 3x density
+	
+	# Level 3+: Forest terrain
+	if gate_level >= LEVEL_UNLOCK_FOREST:
+		var num_forest: int = int(randi_range(NUM_FOREST_CLUSTERS_MIN, NUM_FOREST_CLUSTERS_MAX) * density_mult)
+		for _i in range(num_forest):
+			var fsize: int = int(randi_range(FOREST_CLUSTER_MIN, FOREST_CLUSTER_MAX) * density_mult)
+			var edge: Vector2i = _find_terrain_edge(Terrain.FOREST)
+			var fx: int; var fy: int
+			if edge.x >= 0:
+				fx = edge.x; fy = edge.y
+			else:
+				fx = randi_range(2, GRID_WIDTH - 3)
+				fy = randi_range(2, GRID_HEIGHT - 3)
+			_grow_cluster(fx, fy, fsize, Terrain.FOREST)
+			_fill_interior(Terrain.FOREST, 2)
+
+	# Level 2+: River terrain
+	if gate_level >= LEVEL_UNLOCK_RIVER:
+		var num_river: int = int(randi_range(NUM_RIVER_CLUSTERS_MIN, NUM_RIVER_CLUSTERS_MAX) * density_mult)
+		for _i in range(num_river):
+			var rsize: int = int(randi_range(RIVER_CLUSTER_MIN, RIVER_CLUSTER_MAX) * density_mult)
+			var edge: Vector2i = _find_terrain_edge(Terrain.RIVER)
+			var rx: int; var ry: int
+			if edge.x >= 0:
+				rx = edge.x; ry = edge.y
+			else:
+				rx = randi_range(2, GRID_WIDTH - 3)
+				ry = randi_range(2, GRID_HEIGHT - 3)
+			_grow_cluster(rx, ry, rsize, Terrain.RIVER)
+			_fill_interior(Terrain.RIVER, 2)
+		_assign_river_variants()
+	
+	# Level 4+: Mountain terrain
 	var mountain_centers: Array[Vector2i] = []
-	var num_mountain: int = randi_range(NUM_MOUNTAIN_CLUSTERS_MIN, NUM_MOUNTAIN_CLUSTERS_MAX)
-	for _i in range(num_mountain):
-		var msize: int = randi_range(MOUNTAIN_CLUSTER_MIN, MOUNTAIN_CLUSTER_MAX)
-		var mx: int = randi_range(2, GRID_WIDTH - 3)
-		var my: int = randi_range(2, GRID_HEIGHT - 3)
-		_grow_cluster(mx, my, msize, Terrain.MOUNTAIN)
-		mountain_centers.append(Vector2i(mx, my))
+	if gate_level >= LEVEL_UNLOCK_MOUNTAIN:
+		var num_mountain: int = int(randi_range(NUM_MOUNTAIN_CLUSTERS_MIN, NUM_MOUNTAIN_CLUSTERS_MAX) * density_mult)
+		for _i in range(num_mountain):
+			var msize: int = int(randi_range(MOUNTAIN_CLUSTER_MIN, MOUNTAIN_CLUSTER_MAX) * density_mult)
+			var mx: int = randi_range(2, GRID_WIDTH - 3)
+			var my: int = randi_range(2, GRID_HEIGHT - 3)
+			_grow_cluster(mx, my, msize, Terrain.MOUNTAIN)
+			mountain_centers.append(Vector2i(mx, my))
+		
+		# Level 5+: Volcano and magma (requires mountains)
+		if gate_level >= LEVEL_UNLOCK_VOLCANO and mountain_centers.size() > 0:
+			var largest_center: Vector2i = mountain_centers[0]
+			var max_count: int = 0
+			for center in mountain_centers:
+				var count: int = _count_mountain_neighbors(center.x, center.y)
+				if count > max_count:
+					max_count = count
+					largest_center = center
+			if max_count >= 3:
+				_generate_volcano_and_magma(largest_center.x, largest_center.y)
 	
-	# Generate Volcano in the center of largest mountain cluster
-	if mountain_centers.size() > 0:
-		var largest_center: Vector2i = mountain_centers[0]
-		var max_count: int = 0
-		for center in mountain_centers:
-			var count: int = _count_mountain_neighbors(center.x, center.y)
-			if count > max_count:
-				max_count = count
-				largest_center = center
-		# Place volcano at the densest mountain area
-		if max_count >= 3:
-			_generate_volcano_and_magma(largest_center.x, largest_center.y)
-	
+	# Generate wormholes based on level
 	_generate_wormholes()
+	
 	# Clear spawn area (7x7 center) with safe margin
 	var cx: int = GRID_WIDTH / 2
 	var cy: int = GRID_HEIGHT / 2
