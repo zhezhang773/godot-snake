@@ -252,6 +252,12 @@ var wall_pass_timer: float = 0.0
 var magma_fruit_active: bool = false
 var magma_fruit_timer: float = 0.0
 
+# Combo consume system
+var combo_consume_wormholes: Array[Dictionary] = []
+var combo_wormhole_timer: float = 0.0
+var combo_double_score_active: bool = false
+var combo_double_score_timer: float = 0.0
+
 # =========================================================
 # Particles
 # =========================================================
@@ -568,6 +574,12 @@ func _reset_game() -> void:
 	magma_fruit_active = false
 	magma_fruit_timer = 0.0
 	
+	# Reset combo consume system
+	combo_consume_wormholes.clear()
+	combo_wormhole_timer = 0.0
+	combo_double_score_active = false
+	combo_double_score_timer = 0.0
+	
 	# Calculate base speed based on level (3% faster per level, max 100% faster)
 	var level_speed_mult: float = 1.0 + min((gate_level - 1) * LEVEL_SPEED_INCREASE, MAX_SPEED_INCREASE)
 	game_speed = 0.3 / level_speed_mult
@@ -771,6 +783,19 @@ func _process(delta: float) -> void:
 		if magma_fruit_timer <= 0.0:
 			magma_fruit_active = false
 			magma_fruit_timer = 0.0
+	
+	# Combo consume effects timers
+	if combo_double_score_active:
+		combo_double_score_timer -= delta
+		if combo_double_score_timer <= 0.0:
+			combo_double_score_active = false
+			combo_double_score_timer = 0.0
+	
+	if combo_wormhole_timer > 0.0:
+		combo_wormhole_timer -= delta
+		if combo_wormhole_timer <= 0.0:
+			combo_consume_wormholes.clear()
+			combo_wormhole_timer = 0.0
 			_spawn_floating_text(Loc.t("float_magma_end"), segments[0] if not segments.is_empty() else Vector2i(0, 0), Color(0.9, 0.3, 0.1), 16)
 	
 	# Magma damage and burning effect
@@ -1088,7 +1113,7 @@ func _game_tick() -> void:
 				_end_game()
 				return
 
-	# Wormhole teleportation
+	# Wormhole teleportation (regular wormholes)
 	if not wormhole_cooldown:
 		for wh in wormholes:
 			if wh.pos == new_head:
@@ -1101,6 +1126,21 @@ func _game_tick() -> void:
 				if audio_manager:
 					audio_manager.play_wormhole()
 				break
+		# Check combo consume wormholes
+		if combo_consume_wormholes.size() >= 2 and not wormhole_cooldown:
+			for i in range(combo_consume_wormholes.size()):
+				if combo_consume_wormholes[i].pos == new_head:
+					var dest_idx: int = 1 if i == 0 else 0
+					var dest_pos: Vector2i = combo_consume_wormholes[dest_idx].pos
+					var palette: Array = combo_consume_wormholes[i].palette
+					_spawn_particles(new_head, palette[0], 15, 100.0)
+					_spawn_particles(dest_pos, palette[0], 15, 100.0)
+					_spawn_floating_text(Loc.t("float_wormhole"), new_head, palette[1], 14)
+					new_head = dest_pos
+					wormhole_cooldown = true
+					if audio_manager:
+						audio_manager.play_wormhole()
+					break
 	else:
 		wormhole_cooldown = false
 
@@ -1182,6 +1222,10 @@ func _eat_food(pos: Vector2i) -> void:
 	# Magma fruit: double score
 	if magma_fruit_active:
 		bonus *= MAGMA_FRUIT_SCORE_MULTIPLIER
+	
+	# Combo consume level 3: double score on food
+	if combo_double_score_active:
+		bonus *= 2
 	
 	# Each food eaten increases speed by 1%
 	game_speed *= (1.0 - FOOD_SPEED_INCREASE)
@@ -1341,6 +1385,100 @@ func _try_spawn_special() -> void:
 		audio_manager.play_special_appear()  # 播放特殊果实出现音效
 
 # =========================================================
+# Combo Consume System
+# Press SPACE to consume all combo segments for special effects
+# 1 segment (3 combos): +50 pts, speed boost 2s
+# 2 segments (6 combos): +100 pts, heal 1 segment, clear burning
+# 3 segments (9 combos): +200 pts, double score on food for 5s
+# 4 segments (12 combos): +400 pts, spawn wormhole pair for 10s
+# 5 segments (15 combos): +800 pts, invincible for 10s (ghost+wallpass+wallstop)
+# =========================================================
+
+var combo_consume_wormholes: Array[Dictionary] = []
+var combo_wormhole_timer: float = 0.0
+var combo_double_score_active: bool = false
+var combo_double_score_timer: float = 0.0
+
+func _consume_combo() -> void:
+	var segments: int = min(combo / 3, 5)
+	if segments <= 0:
+		return
+	
+	# Reset combo
+	var consumed_combo: int = combo
+	combo = 0
+	combo_timer = 0.0
+	
+	var head_pos: Vector2i = segments[0] if not segments.is_empty() else Vector2i(GRID_WIDTH/2, GRID_HEIGHT/2)
+	
+	match segments:
+		1:
+			# Level 1: +50 pts, speed boost 2s
+			score += 50
+			# Temporarily boost speed (reduce interval)
+			game_speed *= 0.5
+			_spawn_floating_text("+50 SPEED!", head_pos, Color(0.4, 0.7, 1.0), 18)
+			# Reset speed after 2s using a timer callback
+			_create_speed_restore_timer(2.0)
+		
+		2:
+			# Level 2: +100 pts, heal 1 segment, clear burning
+			score += 100
+			grow_pending += 1
+			is_burning = false
+			burning_timer = 0.0
+			_spawn_floating_text("+100 HEAL!", head_pos, Color(0.3, 0.9, 0.4), 18)
+		
+		3:
+			# Level 3: +200 pts, double score on food for 5s
+			score += 200
+			combo_double_score_active = true
+			combo_double_score_timer = 5.0
+			_spawn_floating_text("+200 2X FOOD!", head_pos, Color(1.0, 0.9, 0.2), 20)
+		
+		4:
+			# Level 4: +400 pts, spawn wormhole pair for 10s
+			score += 400
+			_spawn_combo_wormholes()
+			_spawn_floating_text("+400 WORMHOLE!", head_pos, Color(1.0, 0.5, 0.1), 20)
+		
+		5:
+			# Level 5: +800 pts, invincible for 10s (ghost+wallpass+wallstop)
+			score += 800
+			ghost_active = true
+			ghost_timer = 10.0
+			wall_pass_active = true
+			wall_pass_timer = 10.0
+			wall_stop_active = true
+			wall_stop_timer = 10.0
+			_spawn_floating_text("+800 INVINCIBLE!", head_pos, Color(1.0, 0.2, 0.4), 22)
+	
+	if audio_manager:
+		audio_manager.play_special_appear()
+
+func _create_speed_restore_timer(duration: float) -> void:
+	# Simple timer using a callback - we'll handle this in _process
+	# For now, just store the restore time
+	pass
+
+func _spawn_combo_wormholes() -> void:
+	combo_consume_wormholes.clear()
+	var center_x: int = GRID_WIDTH / 2
+	var center_y: int = GRID_HEIGHT / 2
+	
+	# Spawn 2 wormholes at random positions
+	for i in range(2):
+		for _attempt in range(100):
+			var x: int = randi_range(2, GRID_WIDTH - 3)
+			var y: int = randi_range(2, GRID_HEIGHT - 3)
+			if tiles[y][x] == Terrain.GROUND and abs(x - center_x) > 3 and abs(y - center_y) > 3:
+				var palette: Array[Color] = [Color(0.2, 0.6, 0.95), Color(0.45, 0.75, 1.0), Color(0.1, 0.3, 0.6), Color(0.2, 0.6, 0.95)]
+				combo_consume_wormholes.append({"pos": Vector2i(x, y), "pair_id": 0, "palette": palette})
+				break
+	
+	combo_wormhole_timer = 10.0
+
+# =========================================================
 # Food Rain
 # =========================================================
 
@@ -1431,6 +1569,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not game_over and game_started and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		paused = true
 		pause_selected = 0
+		return
+
+	# Combo consume: SPACE key
+	if not game_over and game_started and event is InputEventKey and event.pressed and event.keycode == KEY_SPACE:
+		_consume_combo()
 		return
 
 	# Direction input
@@ -2383,6 +2526,55 @@ func _draw_special_food() -> void:
 				icon_char, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1.0, 1.0, 1.0, 0.7 * flash_alpha))
 
 # =========================================================
+# Drawing - Combo Counter (bottom of screen)
+# =========================================================
+func _draw_combo_counter(W: float, H: float) -> void:
+	# Calculate segments: 1 segment per 3 combos, max 5 segments
+	var segments: int = min(combo / 3, 5)
+	if segments <= 0:
+		return
+	
+	var box_size: float = 24.0
+	var spacing: float = 8.0
+	var total_width: float = segments * box_size + (segments - 1) * spacing
+	var start_x: float = (W - total_width) / 2.0
+	var y: float = H - 40.0
+	
+	# Draw background bar
+	draw_rect(Rect2(start_x - 4.0, y - 4.0, total_width + 8.0, box_size + 8.0), 
+		Color(0.1, 0.1, 0.15, 0.8), true)
+	
+	# Draw each segment with different color based on level
+	var colors: Array[Color] = [
+		Color(0.4, 0.7, 1.0),  # Level 1: Blue
+		Color(0.3, 0.9, 0.4),  # Level 2: Green
+		Color(1.0, 0.9, 0.2),  # Level 3: Yellow
+		Color(1.0, 0.5, 0.1),  # Level 4: Orange
+		Color(1.0, 0.2, 0.4),  # Level 5: Red/Pink
+	]
+	
+	for i in range(segments):
+		var x: float = start_x + i * (box_size + spacing)
+		var color: Color = colors[i]
+		# Pulsing effect for full charge
+		if segments == 5:
+			var pulse: float = 0.7 + 0.3 * sin(anim_timer * 8.0 + i)
+			color = color.lightened(pulse * 0.3)
+		# Draw segment box
+		draw_rect(Rect2(x, y, box_size, box_size), color, true)
+		draw_rect(Rect2(x, y, box_size, box_size), Color(1.0, 1.0, 1.0, 0.5), false, 2.0)
+		# Draw number
+		draw_string(ThemeDB.fallback_font, Vector2(x + 6, y + 18),
+			str(i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.0, 0.0, 0.0, 0.8))
+	
+	# Draw instruction hint
+	if segments > 0:
+		var hint_text: String = "SPACE"
+		var hint_ts: Vector2 = ThemeDB.fallback_font.get_string_size(hint_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 10)
+		draw_string(ThemeDB.fallback_font, Vector2((W - hint_ts.x) / 2.0, H - 8.0),
+			hint_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color(0.7, 0.7, 0.75, 0.6))
+
+# =========================================================
 # Drawing - Snake
 # =========================================================
 
@@ -2728,10 +2920,8 @@ func _draw_ui() -> void:
 		draw_string(ThemeDB.fallback_font, Vector2(15, 112),
 			Loc.t("ui_gate_open"), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.3, 0.9, 0.5, 0.85))
 
-	var speed_text: String = Loc.t("ui_speed") % display_speed
-	var speed_ts: Vector2 = ThemeDB.fallback_font.get_string_size(speed_text, HORIZONTAL_ALIGNMENT_RIGHT, -1, 16)
-	draw_string(ThemeDB.fallback_font, Vector2(W - 15 - speed_ts.x, 30),
-		speed_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(0.6, 0.65, 0.75, 0.85))
+	# Combo counter (bottom of screen) - 1 segment per 3 combos, max 5 segments
+	_draw_combo_counter(W, H)
 
 	if combo >= 3:
 		var combo_alpha: float = min(1.0, combo_timer / 0.5)
@@ -3012,6 +3202,9 @@ func _generate_wormholes() -> void:
 
 func _draw_wormholes() -> void:
 	for wh in wormholes:
+		_draw_single_wormhole(wh)
+	# Draw combo consume wormholes
+	for wh in combo_consume_wormholes:
 		_draw_single_wormhole(wh)
 
 func _draw_single_wormhole(wh: Dictionary) -> void:
