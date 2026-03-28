@@ -1173,9 +1173,11 @@ func _game_tick() -> void:
 func _eat_food(pos: Vector2i) -> void:
 	combo += 1
 	combo_timer = 8.0
-	var bonus: int = 10
-	if combo >= 3:
-		bonus += combo * 2
+	var base_score: int = 10
+	# Combo bonus: +2 per combo, max 3x total (base + 2x base)
+	var max_bonus: int = base_score * 2  # Max 20 bonus (2x base)
+	var combo_bonus: int = min(combo * 2, max_bonus)
+	var bonus: int = base_score + combo_bonus
 	
 	# Magma fruit: double score
 	if magma_fruit_active:
@@ -1200,7 +1202,11 @@ func _eat_food(pos: Vector2i) -> void:
 # =========================================================
 
 func _eat_special_fruit(pos: Vector2i) -> void:
-	var bonus: int = SPECIAL_FOOD_SCORE + combo * 5
+	var base_score: int = SPECIAL_FOOD_SCORE
+	# Combo bonus: +5 per combo, max 3x total (base + 2x base)
+	var max_bonus: int = base_score * 2  # Max 60 bonus (2x base)
+	var combo_bonus: int = min(combo * 5, max_bonus)
+	var bonus: int = base_score + combo_bonus
 	score += bonus
 	combo += 1
 	combo_timer = 8.0
