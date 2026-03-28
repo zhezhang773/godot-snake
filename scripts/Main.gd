@@ -3110,23 +3110,35 @@ func _generate_volcano_and_magma(cx: int, cy: int) -> void:
 	tiles[best_y][best_x] = Terrain.VOLCANO
 	
 	# Generate magma flow using BFS-like approach
-	# Each new magma must be adjacent to volcano or existing magma
+	# Rule: If volcano exists, magma MUST exist (at least 10 tiles)
+	# Each new magma must be adjacent (4-directional) to volcano or existing magma
 	var magma_queue: Array[Vector2i] = [Vector2i(best_x, best_y)]
 	var placed_magma: int = 0
-	var target_magma: int = randi_range(4, 8)
-	var max_attempts: int = 50
+	var min_magma: int = 10  # At least 10 magma tiles
+	var max_attempts: int = 200
 	var attempts: int = 0
 	
-	while placed_magma < target_magma and attempts < max_attempts and not magma_queue.is_empty():
+	# Continue until we have at least min_magma tiles or exhaust attempts
+	while placed_magma < min_magma and attempts < max_attempts:
 		attempts += 1
+		
+		# If queue is empty but we need more magma, restart from existing magma tiles
+		if magma_queue.is_empty():
+			# Find all existing magma tiles to use as new sources
+			for y in range(GRID_HEIGHT):
+				for x in range(GRID_WIDTH):
+					if tiles[y][x] == Terrain.MAGMA or tiles[y][x] == Terrain.VOLCANO:
+						magma_queue.append(Vector2i(x, y))
+			# Still empty? Break to avoid infinite loop
+			if magma_queue.is_empty():
+				break
 		
 		# Pick a random position from queue (volcano or existing magma)
 		var source_idx: int = randi() % magma_queue.size()
 		var source: Vector2i = magma_queue[source_idx]
 		
-		# Try to place magma in a random direction from source
-		var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0),
-									 Vector2i(1, 1), Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1)]
+		# Try to place magma in a random direction from source (4-directional)
+		var dirs: Array[Vector2i] = [Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 0), Vector2i(-1, 0)]
 		dirs.shuffle()
 		
 		var placed: bool = false
@@ -3141,16 +3153,15 @@ func _generate_volcano_and_magma(cx: int, cy: int) -> void:
 			if tiles[ny][nx] != Terrain.GROUND and tiles[ny][nx] != Terrain.MOUNTAIN:
 				continue
 			
-			# Must be adjacent to volcano or magma (connectivity rule)
-			# Note: Since source is volcano/magma, this new tile will be adjacent to source
+			# Place magma - it will be adjacent to source (volcano or magma)
 			tiles[ny][nx] = Terrain.MAGMA
 			placed_magma += 1
 			magma_queue.append(Vector2i(nx, ny))
 			placed = true
 			break
 		
-		# If couldn't place from this source, remove it from queue occasionally
-		if not placed and randf() < 0.3:
+		# If couldn't place from this source, remove it from queue
+		if not placed:
 			magma_queue.remove_at(source_idx)
 	
 	# Post-process: Remove any magma not connected to volcano (shouldn't happen, but safety check)
