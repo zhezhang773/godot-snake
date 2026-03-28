@@ -142,6 +142,14 @@ var river_penalty_timer: float = 0.0
 var magma_damage_timer: float = 0.0
 var is_on_magma: bool = false
 
+# Burning effect after leaving magma
+var is_burning: bool = false
+var burning_timer: float = 0.0
+const BURNING_DURATION: float = 5.0
+const BURNING_DAMAGE_INTERVAL: float = 1.0
+var burning_damage_timer: float = 0.0
+const BURNING_DAMAGE_SCORE: int = 20
+
 # Wormholes
 var wormholes: Array[Dictionary] = []
 var wormhole_cooldown: bool = false
@@ -523,6 +531,9 @@ func _reset_game() -> void:
 	river_penalty_timer = 0.0
 	magma_damage_timer = 0.0
 	is_on_magma = false
+	is_burning = false
+	burning_timer = 0.0
+	burning_damage_timer = 0.0
 	game_speed = 0.3
 	boosted = false
 	boost_glow = 0.0
@@ -718,20 +729,48 @@ func _process(delta: float) -> void:
 			wall_pass_active = false
 			wall_pass_timer = 0.0
 	
-	# Magma damage over time
-	if is_on_magma and game_started and not game_over:
-		magma_damage_timer += delta
-		if magma_damage_timer >= VOLCANO_MAGMA_DAMAGE_INTERVAL:
+	# Magma damage and burning effect
+	if game_started and not game_over:
+		if is_on_magma:
+			# On magma: take damage and start/refresh burning
+			magma_damage_timer += delta
+			burning_timer = BURNING_DURATION  # Refresh burning timer
+			is_burning = true
+			
+			if magma_damage_timer >= VOLCANO_MAGMA_DAMAGE_INTERVAL:
+				magma_damage_timer = 0.0
+				score -= VOLCANO_MAGMA_DAMAGE_SCORE
+				if score < 0:
+					score = 0
+				# Spawn fire particles
+				if not segments.is_empty():
+					_spawn_particles(segments[0], Color(1.0, 0.2, 0.0), 10, 100.0)
+					_spawn_floating_text(Loc.t("float_burning") % VOLCANO_MAGMA_DAMAGE_SCORE, segments[0], Color(1.0, 0.3, 0.0), 16)
+				if audio_manager:
+					audio_manager.play_bomb_explode()
+		else:
+			# Not on magma: check burning effect
+			if is_burning:
+				burning_timer -= delta
+				burning_damage_timer += delta
+				
+				# Burning damage every second
+				if burning_damage_timer >= BURNING_DAMAGE_INTERVAL:
+					burning_damage_timer = 0.0
+					score -= BURNING_DAMAGE_SCORE
+					if score < 0:
+						score = 0
+					if not segments.is_empty():
+						_spawn_floating_text("-%d" % BURNING_DAMAGE_SCORE, segments[0], Color(1.0, 0.5, 0.1), 14)
+				
+				# Check if burning ends
+				if burning_timer <= 0.0:
+					is_burning = false
+					burning_timer = 0.0
+					burning_damage_timer = 0.0
+			
+			# Reset magma timer when not on magma
 			magma_damage_timer = 0.0
-			score -= VOLCANO_MAGMA_DAMAGE_SCORE
-			if score < 0:
-				score = 0
-			# Spawn fire particles
-			if not segments.is_empty():
-				_spawn_particles(segments[0], Color(1.0, 0.3, 0.0), 8, 80.0)
-				_spawn_floating_text("-%d" % VOLCANO_MAGMA_DAMAGE_SCORE, segments[0], Color(1.0, 0.4, 0.1), 16)
-			if audio_manager:
-				audio_manager.play_bomb_explode()
 
 	# Trap
 	if trap_active:
@@ -790,6 +829,12 @@ func _process(delta: float) -> void:
 	if not segments.is_empty():
 		if _get_terrain(segments[0].x, segments[0].y) == Terrain.RIVER:
 			effective_speed *= (1.0 + RIVER_SPEED_PENALTY)
+			# Extinguish burning when entering water
+			if is_burning:
+				is_burning = false
+				burning_timer = 0.0
+				burning_damage_timer = 0.0
+				_spawn_floating_text(Loc.t("float_extinguish"), segments[0], Color(0.3, 0.6, 1.0), 14)
 
 	display_speed = effective_speed
 	speed_timer += delta
@@ -1166,7 +1211,10 @@ func _get_available_cells() -> Array[Vector2i]:
 		for y in range(GRID_HEIGHT):
 			var cell = Vector2i(x, y)
 			if not cell in occupied:
-				available.append(cell)
+				# Exclude mountain, volcano and magma terrain
+				var terrain: int = _get_terrain(x, y)
+				if terrain != Terrain.MOUNTAIN and terrain != Terrain.VOLCANO and terrain != Terrain.MAGMA:
+					available.append(cell)
 	return available
 
 func _spawn_main_food() -> void:
@@ -2324,6 +2372,21 @@ func _draw_snake() -> void:
 		# Eating mouth
 		if mouth_open > 0.05 and not ghost_active:
 			_draw_eating_mouth(head_c, head_r, alpha_factor)
+
+
+		# Burning effect on head
+		if is_burning and not ghost_active:
+			_draw_burning_effect(head_c, head_r)
+
+	# --- Burning effect on body ---
+	if is_burning and not ghost_active and seg_count > 1:
+		for i in range(1, seg_count - 1):
+			if i % 2 == 0:  # Every other segment
+				var seg: Vector2i = segments[i]
+				if _get_terrain(seg.x, seg.y) != Terrain.FOREST:
+					var c: Vector2 = centers[i]
+					var r: float = widths[i] / 4.0
+					_draw_burning_effect(c, r)
 
 
 func _body_perpendicular(seg_idx: int) -> Vector2:
@@ -3637,52 +3700,117 @@ func _draw_volcano_tile(x: int, y: int, px: float, py: float) -> void:
 		var alpha: float = 0.3 + float((s + i * 7) % 4) / 10.0
 		draw_circle(Vector2(sx, sy), 1.5 + float(i), Color(0.4, 0.35, 0.3, alpha))
 
-# --- Magma tile: flowing lava with animated glow ---
+# --- Burning effect: fire particles on snake ---
+func _draw_burning_effect(center: Vector2, radius: float) -> void:
+	var s: int = int(center.x * 100.0 + center.y * 100.0) + int(anim_timer * 60.0)
+	
+	# Fire colors
+	var core_color: Color = Color(1.0, 0.9, 0.3)    # Yellow core
+	var mid_color: Color = Color(1.0, 0.5, 0.1)     # Orange
+	var edge_color: Color = Color(0.9, 0.2, 0.05)   # Red
+	
+	# Multiple flame particles
+	var num_flames: int = 4
+	for i in range(num_flames):
+		var angle: float = float(i) * TAU / float(num_flames) + anim_timer * 3.0 + float(s % 10) * 0.1
+		var dist: float = radius * (0.3 + float((s + i * 17) % 30) / 100.0)
+		var fx: float = center.x + cos(angle) * dist
+		var fy: float = center.y + sin(angle) * dist - radius * 0.2  # Flames go upward
+		
+		var flicker: float = 0.7 + 0.3 * sin(anim_timer * 8.0 + float(i) * 2.0)
+		var fsize: float = radius * (0.25 + 0.15 * flicker)
+		
+		# Outer flame (red)
+		draw_circle(Vector2(fx, fy), fsize, edge_color)
+		# Middle flame (orange)
+		draw_circle(Vector2(fx, fy - fsize * 0.2), fsize * 0.7, mid_color)
+		# Core flame (yellow)
+		draw_circle(Vector2(fx, fy - fsize * 0.4), fsize * 0.4, core_color)
+	
+	# Rising sparks
+	for i in range(3):
+		var spark_t: float = (anim_timer * 2.0 + float(i) * 0.7) 
+		var spark_y: float = center.y - radius * 0.5 - fmod(spark_t, 1.0) * radius * 0.8
+		var spark_x: float = center.x + sin(spark_t * 3.0 + float(i)) * radius * 0.3
+		var spark_alpha: float = 1.0 - fmod(spark_t, 1.0)
+		draw_circle(Vector2(spark_x, spark_y), 1.5, Color(1.0, 0.6, 0.2, spark_alpha))
+
+# --- Magma tile: flowing fire-red lava streams ---
 func _draw_magma_tile(x: int, y: int, px: float, py: float) -> void:
 	var s: int = x * 97 + y * 163
-	var anim_offset: float = anim_timer * 2.0  # For flowing effect
+	var anim_offset: float = anim_timer * 3.0
 	
-	# Base dark rock
-	draw_rect(Rect2(px, py, CELL_SIZE, CELL_SIZE), Color(0.22, 0.15, 0.10))
+	# Dark rock base
+	draw_rect(Rect2(px, py, CELL_SIZE, CELL_SIZE), Color(0.20, 0.12, 0.08))
 	
-	# Magma colors
-	var lava_core: Color = Color(0.95, 0.2, 0.05)
-	var lava_mid: Color = Color(0.85, 0.35, 0.1)
-	var lava_edge: Color = Color(0.7, 0.25, 0.08)
-	var rock_dark: Color = Color(0.18, 0.12, 0.08)
+	# Fire-red lava colors
+	var lava_dark: Color = Color(0.7, 0.1, 0.05)      # 深红
+	var lava_mid: Color = Color(0.9, 0.2, 0.05)        # 火红
+	var lava_bright: Color = Color(1.0, 0.35, 0.08)    # 橙红
+	var lava_core: Color = Color(1.0, 0.55, 0.15)      # 亮橙黄核心
 	
-	# Flowing lava pattern (multiple overlapping blobs)
-	var num_blobs: int = 6
-	for i in range(num_blobs):
-		var angle: float = float(i) * TAU / float(num_blobs) + anim_offset * 0.3 + float(s % 10)
-		var dist: float = 8.0 + float((s + i * 17) % 12)
-		var bx: float = px + CELL_SIZE * 0.5 + cos(angle + anim_offset * 0.5) * dist * 0.5
-		var by: float = py + CELL_SIZE * 0.5 + sin(angle + anim_offset * 0.3) * dist * 0.5
-		var br: float = 5.0 + float((s + i * 13) % 6) + sin(anim_offset + float(i)) * 1.5
+	# Draw flowing lava streams (elongated, flowing shapes)
+	var stream_count: int = 3
+	for i in range(stream_count):
+		# Flow direction based on seed and animation
+		var flow_angle: float = float(s + i * 73) * 0.5 + anim_offset * 0.4
+		var flow_x: float = cos(flow_angle)
+		var flow_y: float = sin(flow_angle)
 		
-		# Edge
-		draw_circle(Vector2(bx, by), br + 2.0, rock_dark)
-		# Mid
-		draw_circle(Vector2(bx, by), br, lava_edge)
-		# Core
-		draw_circle(Vector2(bx, by), br * 0.6, lava_mid)
-		draw_circle(Vector2(bx, by), br * 0.3, lava_core)
+		# Stream start position
+		var sx: float = px + 8.0 + float((s + i * 31) % 24)
+		var sy: float = py + 8.0 + float((s + i * 47) % 24)
+		
+		# Draw flowing stream (series of elongated circles)
+		var stream_length: int = 5
+		for j in range(stream_length):
+			var t: float = float(j) / float(stream_length)
+			var bx: float = sx + flow_x * t * 25.0 + sin(anim_offset + t * 3.0 + float(i)) * 3.0
+			var by: float = sy + flow_y * t * 25.0 + cos(anim_offset * 0.7 + t * 2.0 + float(i)) * 2.0
+			var width: float = 6.0 * (1.0 - t * 0.5) + sin(anim_offset * 2.0 + float(j)) * 1.5
+			
+			# Outer glow (dark red)
+			draw_circle(Vector2(bx, by), width + 2.0, lava_dark)
+			# Mid layer (fire red)
+			draw_circle(Vector2(bx, by), width, lava_mid)
+			# Bright core
+			if j < stream_length - 1:
+				draw_circle(Vector2(bx, by), width * 0.5, lava_bright)
+				# Hot core
+				draw_circle(Vector2(bx + flow_x, by + flow_y), width * 0.25, lava_core)
 	
-	# Cracks with glowing edges
-	for i in range(3):
+	# Bubbling lava pools
+	for i in range(4):
+		var bx: float = px + 6.0 + float((s + i * 23) % 28)
+		var by: float = py + 6.0 + float((s + i * 37) % 28)
+		var pulse: float = sin(anim_offset * 2.0 + float(i) * 1.5) * 0.3 + 0.7
+		var br: float = (3.0 + float((s + i * 11) % 5)) * pulse
+		
+		draw_circle(Vector2(bx, by), br + 1.5, lava_dark)
+		draw_circle(Vector2(bx, by), br, lava_mid)
+		draw_circle(Vector2(bx, by), br * 0.4, lava_bright)
+	
+	# Flowing cracks with fire glow
+	for i in range(4):
 		var cx1: float = px + 5.0 + float((s + i * 29) % 30)
 		var cy1: float = py + 5.0 + float((s + i * 31) % 30)
-		var cx2: float = cx1 + float((s + i * 19) % 20) - 10.0
-		var cy2: float = cy1 + float((s + i * 23) % 20) - 10.0
+		var angle: float = float(s + i * 53) * 0.3 + anim_offset * 0.2
+		var cx2: float = cx1 + cos(angle) * 15.0
+		var cy2: cy1 + sin(angle) * 15.0
+		
+		# Crack edge
+		draw_line(Vector2(cx1, cy1), Vector2(cx2, cy2), lava_dark, 3.0)
+		# Crack core (bright)
 		draw_line(Vector2(cx1, cy1), Vector2(cx2, cy2), lava_mid, 2.0)
-		draw_line(Vector2(cx1 + 1.0, cy1), Vector2(cx2 + 1.0, cy2), lava_core, 1.0)
+		# Crack center (fire)
+		draw_line(Vector2(cx1, cy1), Vector2(cx2, cy2), lava_bright, 1.0)
 	
-	# Heat distortion particles
-	for i in range(4):
-		var hx: float = px + 8.0 + float((s + i * 37 + int(anim_offset * 10.0)) % 24)
-		var hy: float = py + 8.0 + float((s + i * 41 + int(anim_offset * 8.0)) % 24)
-		var halpha: float = 0.4 + sin(anim_offset * 3.0 + float(i)) * 0.2
-		draw_circle(Vector2(hx, hy), 2.0, Color(0.9, 0.4, 0.1, halpha))
+	# Rising heat sparks
+	for i in range(5):
+		var spark_x: float = px + 6.0 + float((s + i * 17 + int(anim_offset * 5.0)) % 28)
+		var spark_y: float = py + 4.0 + float((s + i * 19 + int(anim_offset * 8.0)) % 32)
+		var spark_alpha: float = 0.6 + sin(anim_offset * 4.0 + float(i) * 2.0) * 0.3
+		draw_circle(Vector2(spark_x, spark_y), 1.5, Color(1.0, 0.5, 0.1, spark_alpha))
 
 func _draw_overlay(alpha: float) -> void:
 	draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), Color(0, 0, 0, alpha))

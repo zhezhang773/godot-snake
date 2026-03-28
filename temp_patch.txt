@@ -1,0 +1,14 @@
+		# Burning effect on head
+		if is_burning and not ghost_active:
+			_draw_burning_effect(head_c, head_r)
+
+	# --- Burning effect on body ---
+	if is_burning and not ghost_active and seg_count > 1:
+		for i in range(1, seg_count - 1):
+			if i % 2 == 0:  # Every other segment
+				var seg: Vector2i = segments[i]
+				if _get_terrain(seg.x, seg.y) != Terrain.FOREST:
+					var c: Vector2 = centers[i]
+					var r: float = widths[i] / 4.0
+					_draw_burning_effect(c, r)
+
