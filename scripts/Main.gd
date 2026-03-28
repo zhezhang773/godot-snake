@@ -3796,7 +3796,7 @@ func _draw_magma_tile(x: int, y: int, px: float, py: float) -> void:
 		var cy1: float = py + 5.0 + float((s + i * 31) % 30)
 		var angle: float = float(s + i * 53) * 0.3 + anim_offset * 0.2
 		var cx2: float = cx1 + cos(angle) * 15.0
-		var cy2: cy1 + sin(angle) * 15.0
+		var cy2: float = cy1 + sin(angle) * 15.0
 		
 		# Crack edge
 		draw_line(Vector2(cx1, cy1), Vector2(cx2, cy2), lava_dark, 3.0)
