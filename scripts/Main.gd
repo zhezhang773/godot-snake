@@ -357,6 +357,7 @@ var ghost_bar_color: Color = Color(0.5, 0.3, 1.0, 0.7)
 var wallstop_bar_color: Color = Color(0.95, 0.78, 0.15, 0.8)
 var wallpass_bar_color: Color = Color(0.6, 0.25, 0.9, 0.7)
 var trap_bar_color: Color = Color(0.9, 0.3, 0.1, 0.7)
+var magma_fruit_bar_color: Color = Color(1.0, 0.6, 0.0, 0.8)
 
 # =========================================================
 # Localization helper
@@ -1866,6 +1867,10 @@ func _draw_background() -> void:
 	elif wall_stop_active:
 		draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), border_color, false, 2.0)
 		_draw_wall_sponge()
+	elif magma_fruit_active:
+		# Magma fruit screen effect - warm golden glow at edges
+		var magma_glow: Color = Color(1.0, 0.4, 0.0, 0.15 + 0.1 * sin(anim_timer * 4.0))
+		draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), magma_glow, false, 4.0)
 	elif ghost_active:
 		draw_rect(Rect2(0, 0, GRID_WIDTH * CELL_SIZE, GRID_HEIGHT * CELL_SIZE), border_color, false, 3.0)
 	elif boosted:
@@ -2652,6 +2657,9 @@ func _draw_ui() -> void:
 		countdown_idx += 1
 	if wall_pass_active:
 		_draw_effect_countdown(W, H, countdown_idx, Loc.t("effect_pass"), wall_pass_timer, WALL_PASS_DURATION, wallpass_bar_color, "P")
+		countdown_idx += 1
+	if magma_fruit_active:
+		_draw_effect_countdown(W, H, countdown_idx, Loc.t("effect_magma"), magma_fruit_timer, MAGMA_FRUIT_DURATION, magma_fruit_bar_color, "🔥")
 		countdown_idx += 1
 
 

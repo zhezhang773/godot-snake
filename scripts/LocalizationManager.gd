@@ -91,6 +91,7 @@ var _translations: Dictionary = {
 	"effect_pass":          {"en": "Pass",                "zh": "穿墙"},
 	"effect_bomb":          {"en": "Bomb",                "zh": "炸弹"},
 	"effect_bar_format":    {"en": "%s %s %ds",           "zh": "%s %s %d秒"},
+	"effect_magma":         {"en": "MAGMA",               "zh": "岩浆"},
 
 	# ---- Boost indicator ----
 	"boost_charging":       {"en": "CHARGING... %.1fs",   "zh": "蓄力中... %.1f秒"},
