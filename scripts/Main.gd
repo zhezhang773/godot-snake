@@ -3347,11 +3347,21 @@ func _river_sparkles(x: int, y: int, px: float, py: float, s: int) -> void:
 	if sp2 > 0.7:
 		draw_circle(Vector2(px + CELL_SIZE * 0.3, py + CELL_SIZE * 0.7), 1.2, Color(0.5, 0.7, 1.0, sp2 * 0.25))
 
-# --- Mountain tile: smooth rounded hills (soft elliptical blobs) ---
+# --- Mountain tile: cohesive hill with matching background ---
 func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 	var s: int = x * 71 + y * 131
 	
-	# Brown earthy colors
+	# 1. 先填充整个格子的山体背景色（与山同色系）
+	var bg_color: Color = Color(0.42, 0.30, 0.20)       # 基础棕褐色背景
+	var bg_shadow: Color = Color(0.38, 0.27, 0.18)      # 背景阴影色
+	draw_rect(Rect2(px, py, CELL_SIZE, CELL_SIZE), bg_color)
+	# 添加细微纹理让背景不那么单调
+	for i in range(6):
+		var tx: float = px + float((s + i * 17) % 36)
+		var ty: float = py + float((s + i * 23) % 36)
+		draw_circle(Vector2(tx, ty), 1.5, bg_shadow)
+	
+	# Brown earthy colors for hills
 	var shadow_color: Color = Color(0.35, 0.25, 0.16)
 	var base_color: Color = Color(0.48, 0.35, 0.24)
 	var mid_color: Color = Color(0.58, 0.43, 0.30)
@@ -3360,21 +3370,18 @@ func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 	
 	# Helper to draw soft elliptical blob
 	var _draw_soft_blob = func(center_x: float, center_y: float, w: float, h: float, color: Color, seed: int) -> void:
-		# 使用多个圆叠加形成平滑椭圆效果
 		var rx: float = w * 0.5
 		var ry: float = h * 0.5
 		var num_circles: int = 8
 		for i in range(num_circles):
 			var angle: float = float(i) * TAU / float(num_circles)
-			# 稍微随机化位置，但很轻微
 			var offset_x: float = cos(angle) * rx * 0.3 + float((seed + i * 7) % 5) * 0.4 - 0.8
 			var offset_y: float = sin(angle) * ry * 0.3 + float((seed + i * 11) % 5) * 0.4 - 0.8
 			var r: float = min(rx, ry) * 0.7
 			draw_circle(Vector2(center_x + offset_x, center_y + offset_y), r, color)
-		# 中心大圆填满
 		draw_circle(Vector2(center_x, center_y), min(rx, ry) * 0.9, color)
 	
-	# 1. 底部宽大基础（扁平椭圆）
+	# 2. 底部宽大基础（扁平椭圆）
 	for i in range(4):
 		var bx: float = px + 6.0 + float((s + i * 23) % 24)
 		var by: float = py + 22.0 + float((s + i * 37) % 10)
@@ -3383,7 +3390,7 @@ func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 		_draw_soft_blob.call(bx + 1.0, by + 1.0, bw, bh, shadow_color, s + i * 7)
 		_draw_soft_blob.call(bx, by, bw, bh, base_color, s + i * 7)
 	
-	# 2. 中层隆起（椭圆堆叠）
+	# 3. 中层隆起（椭圆堆叠）
 	for i in range(3):
 		var mx: float = px + 8.0 + float((s + i * 31) % 20)
 		var my: float = py + 14.0 + float((s + i * 43) % 12)
@@ -3391,7 +3398,7 @@ func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 		var mh: float = 12.0 + float((s + i * 19) % 5)
 		_draw_soft_blob.call(mx, my, mw, mh, mid_color, s + i * 11 + 100)
 	
-	# 3. 上层收缩（更圆）
+	# 4. 上层收缩（更圆）
 	for i in range(3):
 		var ux: float = px + 12.0 + float((s + i * 29) % 16)
 		var uy: float = py + 8.0 + float((s + i * 41) % 8)
@@ -3399,7 +3406,7 @@ func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 		var uh: float = 9.0 + float((s + i * 17) % 4)
 		_draw_soft_blob.call(ux, uy, uw, uh, light_color, s + i * 13 + 200)
 	
-	# 4. 顶部圆润峰（小圆堆叠）
+	# 5. 顶部圆润峰（小圆堆叠）
 	for i in range(2):
 		var tx: float = px + 16.0 + float((s + i * 19) % 10)
 		var ty: float = py + 5.0 + float((s + i * 23) % 6)
@@ -3407,19 +3414,16 @@ func _draw_mountain_tile(x: int, y: int, px: float, py: float) -> void:
 		var th: float = 6.0 + float((s + i * 7) % 3)
 		_draw_soft_blob.call(tx, ty, tw, th, top_color, s + i * 17 + 300)
 	
-	# 5. 岩石点缀（小圆点，减少数量）
+	# 6. 岩石点缀（小圆点）
 	for i in range(4):
 		var rx: float = px + 10.0 + float((s + i * 47) % 20)
 		var ry: float = py + 12.0 + float((s + i * 53) % 16)
 		var rsize: float = 1.5 + float((s + i * 13) % 3)
-		# 阴影
 		draw_circle(Vector2(rx + 0.5, ry + 0.5), rsize, Color(0.28, 0.20, 0.13))
-		# 主体
 		draw_circle(Vector2(rx, ry), rsize, Color(0.38, 0.28, 0.18))
-		# 高光
 		draw_circle(Vector2(rx - 0.3, ry - 0.3), rsize * 0.4, Color(0.52, 0.40, 0.28))
 	
-	# 6. 底部草丛（小椭圆点缀）
+	# 7. 底部草丛（小椭圆点缀）
 	for i in range(3):
 		var gx: float = px + 8.0 + float((s + i * 37) % 24)
 		var gy: float = py + CELL_SIZE - 3.0 + float((s + i * 29) % 4)
